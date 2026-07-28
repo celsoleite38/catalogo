@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Painel do Lojista{% endblock %}</title>
+    <!-- Tailwind CSS CDN para estilização rápida -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased flex flex-col min-h-screen">
+
+    <!-- Cabeçalho / Navbar Principal -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="{% url 'catalogo:painel_lojista' %}" class="font-bold text-xl text-indigo-600">
+                    Innosoft <span class="text-xs text-gray-500 font-normal">Catálogo</span>
+                </a>
+            </div>
+
+            <!-- Navegação Superior -->
+            <nav class="flex items-center gap-4 text-sm font-medium">
+                <a href="{% url 'catalogo:painel_lojista' %}" class="text-gray-600 hover:text-indigo-600 transition">
+                    Dashboard
+                </a>
+                {% if user.is_authenticated %}
+                    <span class="text-gray-400">|</span>
+                    <span class="text-gray-600">Olá, <strong>{{ user.username }}</strong></span>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <!-- Exibição de Mensagens Flash (Sucesso, Alertas, Erros) -->
+    {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+            {% for message in messages %}
+                <div class="p-4 rounded-lg text-sm mb-2 {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Conteúdo Dinâmico das Páginas -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% block content %}
+        <!-- Conteúdo específico das páginas entrará aqui -->
+        {% endblock %}
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="bg-white border-t border-gray-200 py-4 mt-auto text-center text-xs text-gray-500">
+        &copy; {% now "Y" %} Innosoft - Todos os direitos reservados.
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

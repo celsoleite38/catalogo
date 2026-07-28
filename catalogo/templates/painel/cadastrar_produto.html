@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo Produto - {{ lojista.nome_loja }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen pb-12">
+
+    <!-- Topbar -->
+    <nav class="bg-white border-b px-6 py-4 flex justify-between items-center">
+        <h1 class="font-bold text-xl text-gray-800">{{ lojista.nome_loja }} - Cadastrar Produto</h1>
+        <a href="{% url 'painel_lojista' %}" class="text-sm text-gray-600 hover:text-gray-900 font-semibold">
+            ← Voltar ao Painel
+        </a>
+    </nav>
+
+    <main class="max-w-2xl mx-auto mt-8 p-4">
+
+        {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+            <div class="px-4 py-3 rounded-lg text-sm font-semibold {% if message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-green-100 text-green-700 border border-green-200{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <form method="post" enctype="multipart/form-data" class="space-y-4">
+                {% csrf_token %}
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Categoria *</label>
+                    {{ form.categoria }}
+                    {% if form.categoria.errors %}<p class="text-xs text-red-500 mt-1">{{ form.categoria.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nome do Produto *</label>
+                    {{ form.nome }}
+                    {% if form.nome.errors %}<p class="text-xs text-red-500 mt-1">{{ form.nome.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Preço Base (R$) *</label>
+                    {{ form.preco_base }}
+                    {% if form.preco_base.errors %}<p class="text-xs text-red-500 mt-1">{{ form.preco_base.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Descrição</label>
+                    {{ form.descricao }}
+                    {% if form.descricao.errors %}<p class="text-xs text-red-500 mt-1">{{ form.descricao.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Foto Principal * <span class="text-xs font-normal text-gray-400">(máx. 2MB)</span></label>
+                    {{ form.foto }}
+                    {% if form.foto.errors %}<p class="text-xs text-red-500 mt-1">{{ form.foto.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Foto Secundária <span class="text-xs font-normal text-gray-400">(máx. 2MB)</span></label>
+                    {{ form.foto2 }}
+                    {% if form.foto2.errors %}<p class="text-xs text-red-500 mt-1">{{ form.foto2.errors.0 }}</p>{% endif %}
+                </div>
+
+                {% if form.non_field_errors %}
+                <div class="bg-red-100 text-red-700 text-sm font-semibold px-4 py-3 rounded-lg border border-red-200">
+                    {{ form.non_field_errors.0 }}
+                </div>
+                {% endif %}
+
+                <!-- Seção de Variações (Tamanho e Cor) -->
+                <div class="border-t pt-4 mt-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-gray-800">Variações (Tamanhos e Cores)</h3>
+                        <button type="button" onclick="adicionarVariacao()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg font-semibold">
+                            + Adicionar Variação
+                        </button>
+                    </div>
+
+                    <div id="container-variacoes" class="space-y-2">
+                        <div class="flex gap-2 items-center">
+                            <input type="text" name="tamanho[]" placeholder="Tamanho (Ex: P, M, 42)" class="w-1/2 p-2 border rounded-lg text-sm">
+                            <input type="text" name="cor[]" placeholder="Cor (Ex: Azul, Preto)" class="w-1/2 p-2 border rounded-lg text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 pt-2">
+                    {{ form.ativo }}
+                    <label class="text-sm font-medium text-gray-700">Produto Ativo (Visível no catálogo)</label>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg shadow transition">
+                        Salvar Produto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+    function validarTamanhoFoto(input) {
+        if (input.files && input.files[0]) {
+            if (input.files[0].size > 2 * 1024 * 1024) {
+                alert('A foto não pode exceder 2MB. Selecione uma imagem menor.');
+                input.value = '';
+            }
+        }
+    }
+    function adicionarVariacao() {
+        const container = document.getElementById('container-variacoes');
+        const novaLinha = document.createElement('div');
+        novaLinha.className = 'flex gap-2 items-center';
+        novaLinha.innerHTML = `
+            <input type="text" name="tamanho[]" placeholder="Tamanho (Ex: G, GG)" class="w-1/2 p-2 border rounded-lg text-sm">
+            <input type="text" name="cor[]" placeholder="Cor (Ex: Vermelho)" class="w-1/2 p-2 border rounded-lg text-sm">
+            <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm font-bold px-1">✕</button>
+        `;
+        container.appendChild(novaLinha);
+    }
+    </script>
+</body>
+</html>

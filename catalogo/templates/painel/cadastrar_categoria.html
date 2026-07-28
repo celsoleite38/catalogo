@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Categorias - {{ lojista.nome_loja }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen pb-12">
+
+    <!-- Topbar -->
+    <nav class="bg-white border-b px-6 py-4 flex justify-between items-center">
+        <h1 class="font-bold text-xl text-gray-800">{{ lojista.nome_loja }} - Categorias & Variações</h1>
+        <a href="{% url 'painel_lojista' %}" class="text-sm text-gray-600 hover:text-gray-900 font-semibold">
+            ← Voltar ao Painel
+        </a>
+    </nav>
+
+    <main class="max-w-2xl mx-auto mt-8 p-4 space-y-6">
+
+        <!-- Formulário de Categoria -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Cadastrar Categoria</h2>
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nome da Categoria *</label>
+                    {{ form.nome }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Ordem de Exibição</label>
+                    {{ form.ordem }}
+                    <p class="text-xs text-gray-500 mt-1">Defina a ordem em que esta categoria aparecerá no menu.</p>
+                </div>
+
+                <!-- Seção de Variações Padrão da Categoria -->
+                <div class="border-t pt-4 mt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-sm">Variações Pré-definidas</h3>
+                            <p class="text-xs text-gray-500">Adicione variações como Tamanho (P, M, G) ou Cor (Azul, Preto)</p>
+                        </div>
+                        <button type="button" onclick="adicionarVariacao()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg font-semibold">
+                            + Variação
+                        </button>
+                    </div>
+
+                    <div id="container-variacoes" class="space-y-2 mt-3">
+                        <div class="flex gap-2 items-center">
+                            <input type="text" name="tamanho[]" placeholder="Tamanho (Ex: P, M, G, 41)" class="w-1/2 p-2 border rounded-lg text-sm">
+                            <input type="text" name="cor[]" placeholder="Cor / Opção (Ex: Vermelho, Alumínio)" class="w-1/2 p-2 border rounded-lg text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg shadow transition">
+                        Salvar Categoria
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Lista de Categorias -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Categorias Cadastradas</h2>
+            {% if categorias %}
+                <ul class="divide-y divide-gray-100">
+                    {% for cat in categorias %}
+                        <li class="py-3 flex justify-between items-center">
+                            <div>
+                                <span class="font-medium text-gray-800">{{ cat.nome }}</span>
+                            </div>
+                            <span class="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">
+                                Ordem: {{ cat.ordem }}
+                            </span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-gray-500 text-sm italic">Nenhuma categoria cadastrada ainda.</p>
+            {% endif %}
+        </div>
+
+    </main>
+
+    <script>
+    function adicionarVariacao() {
+        const container = document.getElementById('container-variacoes');
+        const novaLinha = document.createElement('div');
+        novaLinha.className = 'flex gap-2 items-center';
+        novaLinha.innerHTML = `
+            <input type="text" name="tamanho[]" placeholder="Tamanho (Ex: G, GG)" class="w-1/2 p-2 border rounded-lg text-sm">
+            <input type="text" name="cor[]" placeholder="Cor / Opção" class="w-1/2 p-2 border rounded-lg text-sm">
+            <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm font-bold px-1">✕</button>
+        `;
+        container.appendChild(novaLinha);
+    }
+    </script>
+</body>
+</html>

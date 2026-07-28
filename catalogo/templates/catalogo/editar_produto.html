@@ -1,0 +1,23 @@
+{% extends 'base.html' %} {# Altere para seu template base se houver #}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Editar Produto: {{ produto.nome }}</h2>
+
+    <form method="post" enctype="multipart/form-data" class="mt-3">
+        {% csrf_token %}
+
+        {% if produto.foto %}
+            <div class="mb-3">
+                <label class="form-label d-block">Foto Atual:</label>
+                <img src="{{ produto.foto.url }}" alt="{{ produto.nome }}" style="max-height: 150px;" class="img-thumbnail">
+            </div>
+        {% endif %}
+
+        {{ form.as_p }}
+
+        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+        <a href="{% url 'catalogo:editar_produto' produto.id %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}
