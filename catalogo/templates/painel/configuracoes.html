@@ -5,23 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aparência & Configurações - {{ lojista.nome_loja }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style> body { font-family: 'Plus Jakarta Sans', sans-serif; } </style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-12">
 
-    <!-- Header -->
     <nav class="bg-white border-b px-6 py-4 flex justify-between items-center">
         <h1 class="font-bold text-xl text-gray-800">{{ lojista.nome_loja }} - Configurações da Loja</h1>
-        <a href="{% url 'painel_lojista' %}" class="text-sm text-gray-600 hover:text-gray-900 font-semibold">
+        <a href="{% url 'catalogo:painel_lojista' %}" class="text-sm text-gray-600 hover:text-gray-900 font-semibold">
             ← Voltar ao Painel
         </a>
     </nav>
 
-    <main class="max-w-3xl mx-auto mt-8 p-4 space-y-6">
+    <main class="max-w-4xl mx-auto mt-8 p-4 space-y-6">
 
         <form method="post" class="space-y-6">
             {% csrf_token %}
 
-            <!-- Card Dados Gerais -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h2 class="text-lg font-bold text-gray-800 mb-4">Dados da Loja</h2>
                 <div class="space-y-4">
@@ -36,87 +36,50 @@
                 </div>
             </div>
 
-            <!-- Card Escolha de Tema -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h2 class="text-lg font-bold text-gray-800 mb-1">Tema e Aparência do Catálogo</h2>
-                <p class="text-xs text-gray-500 mb-4">Escolha a identidade visual que mais combina com a sua marca e público-alvo.</p>
+                <p class="text-xs text-gray-500 mb-5">Clique em um tema para pré-visualizar. A cor de destaque, fundo e botões do seu catálogo mudam de acordo com a escolha.</p>
 
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Selecione o Tema Activo</label>
-                    {{ form.tema }}
-                </div>
+                <!-- Select real do form, escondido: mantém compatibilidade com o ModelForm -->
+                <div class="hidden">{{ form.tema }}</div>
 
-                <!-- Guia de Temas -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                    <div class="border rounded-lg p-4 bg-gray-50">
-                        <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase bg-black text-white mb-2">Minimal Nordic</span>
-                        <p class="text-xs text-gray-600">Design minimalista, tipografia marcante em preto e branco. Focado em moda, boutique e joalheria.</p>
-                    </div>
+                <div id="grid-temas" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {% for chave, t in temas.items %}
+                    <button type="button"
+                            data-tema="{{ chave }}"
+                            onclick="selecionarTema('{{ chave }}')"
+                            class="tema-card text-left rounded-xl border-2 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                            style="border-color: {% if lojista.tema == chave %}{{ t.primaria }}{% else %}#E5E7EB{% endif %};">
 
-                    <div class="border rounded-lg p-4 bg-emerald-50 border-emerald-100">
-                        <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase bg-emerald-600 text-white mb-2">Emerald Clean</span>
-                        <p class="text-xs text-gray-600">Visual limpo e dinâmico com destaque em verde. Ideal para delivery, alimentos e farmácias.</p>
-                    </div>
+                        <!-- Mini preview do catálogo com as cores reais do tema -->
+                        <div style="background: {{ t.bg }};" class="p-3">
+                            <div style="background: linear-gradient(135deg, {{ t.primaria }}, {{ t.primaria_hover }}); border-radius: 8px;" class="h-10 flex items-center px-3 mb-2">
+                                <div class="w-4 h-4 rounded-full bg-white/40"></div>
+                            </div>
+                            <div style="background: {{ t.surface }}; border: 1px solid {{ t.border }};" class="rounded-lg p-2 flex items-center gap-2">
+                                <div style="background: {{ t.border }};" class="w-8 h-8 rounded-md flex-shrink-0"></div>
+                                <div class="flex-1 space-y-1">
+                                    <div style="background: {{ t.texto }}; opacity:.7;" class="h-1.5 w-3/4 rounded"></div>
+                                    <div style="background: {{ t.texto_muted }};" class="h-1.5 w-1/2 rounded"></div>
+                                </div>
+                            </div>
+                            <div style="background: {{ t.primaria }}; color: {{ t.texto_primaria }};" class="mt-2 h-6 rounded-md flex items-center justify-center text-[9px] font-bold uppercase">
+                                Pedir
+                            </div>
+                        </div>
 
-                    <div class="border rounded-lg p-4 bg-gray-900 text-white">
-                        <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase bg-green-400 text-black mb-2">Dark Premium</span>
-                        <p class="text-xs text-gray-300">Modo escuro sofisticado com destaques em neon. Perfeito para barbearia, eletrônicos e tabacaria.</p>
-                    </div>
-
-                    <div class="border rounded-lg p-4 bg-amber-50 border-amber-100">
-                        <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase bg-amber-600 text-white mb-2">Warm Sunset</span>
-                        <p class="text-xs text-gray-600">Tons quentes de laranja e âmbar para despertar o apetite. Ideal para hamburguerias e docerias.</p>
-                    </div>
-                    <div class="border rounded-lg p-4 bg-pink-50 border-pink-100">
-                        <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase bg-pink-400 text-white mb-2">Candy Pastels</span>
-                        <p class="text-xs text-gray-600">Tons rosa pastéis bem delicados. Perfeito para confeitaria, mimos e papelaria.</p>
-                    </div>
-
-                    <!-- Rustic Earth -->
-                    <div class="border rounded-lg p-4 bg-stone-100 border-stone-200">
-                        <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase bg-stone-800 text-white mb-2">Rustic Earth</span>
-                        <p class="text-xs text-gray-600">Cores terrosas e acolhedoras. Ideal para cafeterias, padarias e produtos artesanais.</p>
-                    </div>
-
-                    <!-- Sport Fire -->
-                    <div class="border rounded-lg p-4 bg-zinc-800 text-white">
-                        <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase bg-red-600 text-white mb-2">Sport Fire</span>
-                        <p class="text-xs text-gray-300">Visual escuro com vermelho vibrante. Perfeito para suplementos e moda fitness.</p>
-                    </div>
-
-                    <!-- Luxury Gold -->
-                    <div class="border rounded-lg p-4 bg-black text-amber-300 border-amber-500/30">
-                        <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase bg-amber-400 text-black mb-2">Luxury Gold</span>
-                        <p class="text-xs text-amber-200/80">Estética luxuosa em preto e dourado. Ideal para joalherias, vinhos e artigos de luxo.</p>
-                    </div>
-                    <div class="border rounded-lg p-4 bg-slate-900 text-fuchsia-400 border-fuchsia-500/30">
-                        <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase bg-fuchsia-500 text-white mb-2">Cyber Punk</span>
-                        <p class="text-xs text-slate-300">Estética futurista em roxo e magenta neon. Ideal para games, tech e produtos geeks.</p>
-                    </div>
-
-                    <!-- Sunset Drive -->
-                    <div class="border rounded-lg p-4 bg-orange-50 border-orange-200">
-                        <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase bg-orange-500 text-white mb-2">Sunset Drive</span>
-                        <p class="text-xs text-gray-600">Vibrante e ensolarado em laranja coral. Perfeito para moda praia, açaí e verão.</p>
-                    </div>
-
-                    <!-- Mint Fresh -->
-                    <div class="border rounded-lg p-4 bg-teal-50 border-teal-200">
-                        <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase bg-teal-500 text-white mb-2">Mint Fresh</span>
-                        <p class="text-xs text-teal-800">Verde menta limpo e revigorante. Ideal para estética, cosméticos naturais e saúde.</p>
-                    </div>
-
-                    <!-- Vintage Craft -->
-                    <div class="border rounded-lg p-4 bg-stone-900 text-amber-200 border-stone-700">
-                        <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase bg-amber-700 text-white mb-2">Vintage Craft</span>
-                        <p class="text-xs text-stone-300">Estilo rústico e sofisticado em bordô/marfim. Perfeito para adegas, couros e charutarias.</p>
-                    </div>
-
-                    <!-- Royal Blue -->
-                    <div class="border rounded-lg p-4 bg-blue-50 border-blue-200">
-                        <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase bg-blue-600 text-white mb-2">Royal Blue</span>
-                        <p class="text-xs text-slate-600">Azul corporativo clássico e sóbrio. Transmite confiança para serviços, fardamentos e escritórios.</p>
-                    </div>
+                        <div class="p-3 bg-white flex items-start justify-between gap-2">
+                            <div>
+                                <p class="text-xs font-bold text-gray-800">{{ t.label }}</p>
+                                <p class="text-[10px] text-gray-500 mt-0.5 leading-tight">{{ t.mood }}</p>
+                            </div>
+                            <div class="check-icon flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center {% if lojista.tema == chave %}opacity-100{% else %}opacity-0{% endif %}"
+                                 style="border-color: {{ t.primaria }}; background: {{ t.primaria }};">
+                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+                            </div>
+                        </div>
+                    </button>
+                    {% endfor %}
                 </div>
             </div>
 
@@ -126,5 +89,19 @@
         </form>
 
     </main>
+
+<script>
+function selecionarTema(chave) {
+    const select = document.getElementById('{{ form.tema.id_for_label }}');
+    if (select) select.value = chave;
+
+    document.querySelectorAll('.tema-card').forEach(card => {
+        const ativo = card.dataset.tema === chave;
+        card.style.borderColor = ativo ? card.querySelector('.check-icon').style.borderColor : '#E5E7EB';
+        card.querySelector('.check-icon').classList.toggle('opacity-100', ativo);
+        card.querySelector('.check-icon').classList.toggle('opacity-0', !ativo);
+    });
+}
+</script>
 </body>
 </html>

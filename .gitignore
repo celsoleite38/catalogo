@@ -1,0 +1,32 @@
+# Ambiente virtual (não versionar)
+venv/
+env/
+media
+# Arquivos do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Banco de dados local
+*.sqlite3
+
+# Diretórios de configuração
+.vscode/
+.idea/
+
+# Arquivos de mídia ou imagens grandes
+*.cdr
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Imagens estáticas específicas do servidor
+plataforma/static/autenticacao/img/logo3.png
+plataforma/static/plataforma/img/calendarwsf.png
+
+# Variáveis de ambiente
+.env
+
+*.csv

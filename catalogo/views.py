@@ -4,6 +4,7 @@ from .models import Produto, Categoria, VariacaoProduto, Lojista, Categoria
 from .forms import ProdutoForm, CategoriaForm, ConfiguracaoLojistaForm
 from django.contrib import messages
 from .models import Produto
+from .themes import TEMAS, get_tema
 
 MAX_FOTO_SIZE = 2 * 1024 * 1024
 
@@ -53,6 +54,7 @@ def ver_catalogo(request, slug):
         'lojista': lojista,
         'categorias': categorias,
         'produtos': produtos,
+        'tema': get_tema(lojista.tema),
     }
     return render(request, 'catalogo/app.html', context)
 
@@ -105,7 +107,7 @@ def cadastrar_produto(request):
         lojista = Lojista.objects.first()
 
     if not lojista:
-        return redirect('painel_lojista')
+        return redirect('catalogo:painel_lojista')
 
     if request.method == 'POST':
         form = ProdutoForm(request.POST, request.FILES, lojista=lojista)
@@ -126,7 +128,7 @@ def cadastrar_produto(request):
                         cor=c.strip()
                     )
 
-            return redirect('painel_lojista')
+            return redirect('catalogo:painel_lojista')
     else:
         form = ProdutoForm(lojista=lojista)
 
@@ -140,7 +142,7 @@ def cadastrar_categoria(request):
         lojista = Lojista.objects.first()
 
     if not lojista:
-        return redirect('painel_lojista')
+        return redirect('catalogo:painel_lojista')
 
     if request.method == 'POST':
         form = CategoriaForm(request.POST)
@@ -160,7 +162,7 @@ def cadastrar_categoria(request):
                     # Guarda as variações cadastradas
                     pass  # As variações criadas nesta tela ficam salvas para a categoria
 
-            return redirect('cadastrar_categoria')
+            return redirect('catalogo:cadastrar_categoria')
     else:
         form = CategoriaForm()
 
@@ -180,17 +182,18 @@ def configuracoes_lojista(request):
         lojista = Lojista.objects.first()
 
     if not lojista:
-        return redirect('painel_lojista')
+        return redirect('catalogo:painel_lojista')
 
     if request.method == 'POST':
         form = ConfiguracaoLojistaForm(request.POST, instance=lojista)
         if form.is_valid():
             form.save()
-            return redirect('configuracoes_lojista')
+            return redirect('catalogo:configuracoes_lojista')
     else:
         form = ConfiguracaoLojistaForm(instance=lojista)
 
     return render(request, 'painel/configuracoes.html', {
         'form': form,
-        'lojista': lojista
+        'lojista': lojista,
+        'temas': TEMAS,
     })

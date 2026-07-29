@@ -1,225 +1,183 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ lojista.nome_loja }} — Catálogo</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Plus Jakarta Sans', sans-serif; } </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ lojista.nome_loja }} — Catálogo</title>
+<meta name="theme-color" content="{{ tema.bg }}">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: {{ tema.bg }};
+    --surface: {{ tema.surface }};
+    --border: {{ tema.border }};
+    --text: {{ tema.texto }};
+    --text-muted: {{ tema.texto_muted }};
+    --primary: {{ tema.primaria }};
+    --primary-hover: {{ tema.primaria_hover }};
+    --on-primary: {{ tema.texto_primaria }};
+    --font: {{ tema.fonte }};
+  }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); }
+  .surface { background: var(--surface); border-color: var(--border); }
+  .surface-blur { background: color-mix(in srgb, var(--surface), transparent 12%); border-color: var(--border); backdrop-filter: blur(10px); }
+  .text-muted { color: var(--text-muted); }
+  .border-theme { border-color: var(--border); }
+  .btn-primary { background: var(--primary); color: var(--on-primary); }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .badge-primary { background: var(--primary); color: var(--on-primary); }
+  .card-produto { background: var(--surface); border-color: var(--border); }
+  .cover-gradient { background: linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary), #000 25%) 100%); }
+  ::selection { background: var(--primary); color: var(--on-primary); }
+</style>
 </head>
 
-<body class="
-    {% if lojista.tema == 'dark_neon' %} bg-gray-950 text-white
-    {% elif lojista.tema == 'cyber_punk' %} bg-slate-950 text-fuchsia-100
-    {% elif lojista.tema == 'luxury_gold' %} bg-neutral-950 text-amber-100
-    {% elif lojista.tema == 'sport_fire' %} bg-zinc-900 text-white
-    {% elif lojista.tema == 'vintage_craft' %} bg-stone-900 text-amber-50
-    {% elif lojista.tema == 'candy_pastels' %} bg-pink-50/50 text-gray-800
-    {% elif lojista.tema == 'rustic_earth' %} bg-stone-100 text-stone-900
-    {% elif lojista.tema == 'ocean_breeze' %} bg-sky-50/40 text-slate-800
-    {% elif lojista.tema == 'mint_fresh' %} bg-teal-50/30 text-teal-950
-    {% elif lojista.tema == 'sunset_drive' %} bg-orange-50/40 text-gray-900
-    {% elif lojista.tema == 'royal_blue' %} bg-blue-50/30 text-slate-900
-    {% elif lojista.tema == 'warm_sunset' %} bg-amber-50/40 text-gray-900
-    {% elif lojista.tema == 'vibrant_purple' %} bg-purple-50/30 text-gray-900
-    {% elif lojista.tema == 'modern_emerald' %} bg-emerald-50/20 text-gray-900
-    {% else %} bg-[#FAFAFA] text-black {% endif %}
-    min-h-screen antialiased pb-24">
+<body class="min-h-screen antialiased pb-24">
 
-    <!-- Header -->
-    <header class="sticky top-0 z-40 backdrop-blur-md border-b 
-        {% if lojista.tema in 'dark_neon,luxury_gold,sport_fire' %} bg-neutral-900/80 border-neutral-800
-        {% else %} bg-white/80 border-gray-100 {% endif %}">
-        <div class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+<div class="cover-gradient px-6 pt-10 pb-16 text-center relative overflow-hidden">
+    <div class="relative z-10">
+        {% if lojista.logo %}
+            <img src="{{ lojista.logo.url }}" alt="{{ lojista.nome_loja }}" class="w-20 h-20 rounded-full object-cover mx-auto border-4 border-white/30 shadow-lg">
+        {% endif %}
+        <h1 class="mt-4 text-2xl font-extrabold tracking-tight uppercase" style="color: var(--on-primary);">{{ lojista.nome_loja }}</h1>
+        <p class="text-xs font-medium tracking-wider uppercase mt-1 opacity-80" style="color: var(--on-primary);">Catálogo Oficial</p>
+    </div>
+</div>
+
+<header class="sticky top-0 z-40 surface-blur border-b -mt-6 rounded-t-3xl relative">
+    <div class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+        <h2 class="text-sm font-extrabold tracking-tight uppercase">{{ lojista.nome_loja }}</h2>
+        <button onclick="toggleCarrinho()" class="relative p-2.5 rounded-xl border surface flex items-center gap-2 transition-all duration-300 hover:opacity-80">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+            <span class="text-xs font-bold hidden sm:inline uppercase tracking-wider">Carrinho</span>
+            <span id="badge-carrinho" class="absolute -top-2 -right-2 w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center badge-primary">0</span>
+        </button>
+    </div>
+</header>
+
+{% if categorias %}
+<nav class="sticky top-[69px] z-30 border-b py-3 overflow-x-auto surface-blur">
+    <div class="max-w-4xl mx-auto px-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider whitespace-nowrap">
+        <button onclick="filtrarCategoria('todas', this)" class="btn-categoria active-cat px-3 py-1.5 rounded-lg border transition-all duration-300 btn-primary" style="border-color: var(--primary);">
+            Todos
+        </button>
+        {% for cat in categorias %}
+            <button onclick="filtrarCategoria('cat-{{ cat.id }}', this)" class="btn-categoria px-3 py-1.5 rounded-lg border border-transparent opacity-60 hover:opacity-100 transition-all duration-300">
+                {{ cat.nome }}
+            </button>
+        {% endfor %}
+    </div>
+</nav>
+{% endif %}
+
+<main class="max-w-4xl mx-auto px-6 mt-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for produto in produtos %}
+        <div class="card-produto group border rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-500 flex flex-col justify-between"
+             data-categoria="cat-{{ produto.categoria.id|default:'sem-categoria' }}">
+
             <div>
-                <h1 class="text-xl font-extrabold tracking-tight uppercase">{{ lojista.nome_loja }}</h1>
-                <p class="text-xs opacity-60 font-medium tracking-wider uppercase mt-0.5">Catálogo Oficial</p>
-            </div>
-            
-            <!-- Ícone/Botão do Carrinho -->
-            <button onclick="toggleCarrinho()" class="relative p-2.5 rounded-xl border flex items-center gap-2 transition-all duration-300
-                {% if lojista.tema in 'dark_neon,luxury_gold,sport_fire' %} border-neutral-800 bg-neutral-900 hover:bg-neutral-800
-                {% else %} border-gray-200 bg-gray-50 hover:bg-gray-100 {% endif %}">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-                <span class="text-xs font-bold hidden sm:inline uppercase tracking-wider">Carrinho</span>
-                <span id="badge-carrinho" class="absolute -top-2 -right-2 w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center
-                    {% if lojista.tema == 'dark_neon' %} bg-green-400 text-black
-                    {% elif lojista.tema == 'luxury_gold' %} bg-amber-400 text-black
-                    {% elif lojista.tema == 'sport_fire' %} bg-red-600 text-white
-                    {% else %} bg-black text-white {% endif %}">0</span>
-            </button>
-        </div>
-    </header>
-
-    <!-- Navegação de Categorias -->
-    {% if categorias %}
-    <nav class="sticky top-[69px] z-30 border-b py-3 overflow-x-auto backdrop-blur-md
-        {% if lojista.tema in 'dark_neon,luxury_gold,sport_fire' %} bg-neutral-900/90 border-neutral-800
-        {% else %} bg-white/90 border-gray-100 {% endif %}">
-        <div class="max-w-4xl mx-auto px-6 flex items-center gap-4 text-xs font-semibold uppercase tracking-wider whitespace-nowrap">
-            <button onclick="filtrarCategoria('todas', this)" class="btn-categoria active-cat px-3 py-1.5 rounded-lg border transition-all duration-300 border-black bg-black text-white">
-                Todos os Produtos
-            </button>
-            {% for cat in categorias %}
-                <button onclick="filtrarCategoria('cat-{{ cat.id }}', this)" class="btn-categoria px-3 py-1.5 rounded-lg border border-transparent opacity-60 hover:opacity-100 transition-all duration-300">
-                    {{ cat.nome }}
-                </button>
-            {% endfor %}
-        </div>
-    </nav>
-    {% endif %}
-
-    <!-- Grid de Produtos -->
-    <main class="max-w-4xl mx-auto px-6 mt-8">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {% for produto in produtos %}
-            <div class="card-produto group border rounded-xl overflow-hidden hover:shadow-xl transition-all duration-500 flex flex-col justify-between"
-                 data-categoria="cat-{{ produto.categoria.id|default:'sem-categoria' }}">
-                
-                <div>
-                    <!-- Imagem -->
-                    <!-- Imagem -->
-                    <div class="relative aspect-[4/5] bg-gray-100 overflow-hidden">
-                        {% if produto.foto %}
-                            <!-- Foto Principal -->
-                            <img src="{{ produto.foto.url }}" 
-                                alt="{{ produto.nome }}" 
-                                class="w-full h-full object-cover transition-all duration-500 ease-out
-                                        {% if produto.foto2 %} group-hover:opacity-0 {% else %} group-hover:scale-105 {% endif %}">
-
-                            <!-- Segunda Foto (Exibida no Hover) -->
-                            {% if produto.foto2 %}
-                                <img src="{{ produto.foto2.url }}" 
-                                    alt="{{ produto.nome }}" 
-                                    class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out">
-                            {% endif %}
-                        {% else %}
-                            <div class="w-full h-full flex items-center justify-center text-gray-400 font-light text-xs uppercase tracking-widest">Sem Imagem</div>
+                <div class="relative aspect-[4/5] overflow-hidden" style="background: var(--border);">
+                    {% if produto.foto %}
+                        <img src="{{ produto.foto.url }}"
+                            alt="{{ produto.nome }}"
+                            class="w-full h-full object-cover transition-all duration-500 ease-out
+                                    {% if produto.foto2 %} group-hover:opacity-0 {% else %} group-hover:scale-105 {% endif %}">
+                        {% if produto.foto2 %}
+                            <img src="{{ produto.foto2.url }}"
+                                alt="{{ produto.nome }}"
+                                class="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out">
                         {% endif %}
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center text-muted font-light text-xs uppercase tracking-widest">Sem Imagem</div>
+                    {% endif %}
 
-                        {% if produto.categoria %}
-                            <span class="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md shadow-sm z-10
-                                {% if lojista.tema in 'dark_neon,luxury_gold,sport_fire' %} bg-neutral-950 text-white
-                                {% else %} bg-white/90 text-black {% endif %}">
-                                {{ produto.categoria.nome }}
-                            </span>
-                        {% endif %}
-                    </div>
+                    {% if produto.categoria %}
+                        <span class="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md shadow-sm z-10 surface">
+                            {{ produto.categoria.nome }}
+                        </span>
+                    {% endif %}
+                </div>
 
-                    <!-- Detalhes -->
-                    <div class="p-5">
-                        <h3 class="font-bold text-sm uppercase tracking-wide">{{ produto.nome }}</h3>
-                        {% if produto.descricao %}
-                            <p class="text-xs opacity-70 mt-2 line-clamp-2 leading-relaxed">{{ produto.descricao }}</p>
-                        {% endif %}
+                <div class="p-5">
+                    <h3 class="font-bold text-sm uppercase tracking-wide">{{ produto.nome }}</h3>
+                    {% if produto.descricao %}
+                        <p class="text-xs text-muted mt-2 line-clamp-2 leading-relaxed">{{ produto.descricao }}</p>
+                    {% endif %}
 
-                        <!-- Selects de Variação -->
-                        {% if produto.variacoes.exists %}
-                        <div class="mt-4 space-y-3 pt-3 border-t {% if lojista.tema in 'dark_neon,luxury_gold,sport_fire' %} border-neutral-800 {% else %} border-gray-100 {% endif %}">
-                            
-                            <div id="wrapper-tamanho-{{ produto.id }}">
-                                <label class="block text-[10px] font-bold uppercase tracking-wider opacity-60 mb-1">Tamanho:</label>
-                                <select id="tamanho-{{ produto.id }}" onchange="aoMudarTamanho('{{ produto.id }}')"
-                                        class="w-full text-xs font-semibold py-2 px-3 rounded-lg border outline-none transition-colors
-                                        {% if lojista.tema in 'dark_neon,luxury_gold,sport_fire' %} bg-neutral-950 border-neutral-700 text-white
-                                        {% else %} bg-gray-50 border-gray-200 text-gray-800 {% endif %}">
-                                </select>
-                            </div>
-
-                            <div id="wrapper-cor-{{ produto.id }}">
-                                <label class="block text-[10px] font-bold uppercase tracking-wider opacity-60 mb-1">Cor:</label>
-                                <select id="cor-{{ produto.id }}"
-                                        class="w-full text-xs font-semibold py-2 px-3 rounded-lg border outline-none transition-colors
-                                        {% if lojista.tema in 'dark_neon,luxury_gold,sport_fire' %} bg-neutral-950 border-neutral-700 text-white
-                                        {% else %} bg-gray-50 border-gray-200 text-gray-800 {% endif %}">
-                                </select>
-                            </div>
-
+                    {% if produto.variacoes.exists %}
+                    <div class="mt-4 space-y-3 pt-3 border-t border-theme">
+                        <div id="wrapper-tamanho-{{ produto.id }}">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-muted mb-1">Tamanho:</label>
+                            <select id="tamanho-{{ produto.id }}" onchange="aoMudarTamanho('{{ produto.id }}')"
+                                    class="w-full text-xs font-semibold py-2 px-3 rounded-lg border outline-none transition-colors surface"></select>
                         </div>
-                        {% endif %}
+                        <div id="wrapper-cor-{{ produto.id }}">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-muted mb-1">Cor:</label>
+                            <select id="cor-{{ produto.id }}" class="w-full text-xs font-semibold py-2 px-3 rounded-lg border outline-none transition-colors surface"></select>
+                        </div>
                     </div>
+                    {% endif %}
                 </div>
+            </div>
 
-                <!-- Preço e Ação -->
-                <div class="p-5 pt-0">
-                    <div class="flex items-baseline justify-between mb-4 border-t pt-4 
-                        {% if lojista.tema in 'dark_neon,luxury_gold,sport_fire' %} border-neutral-800 {% else %} border-gray-100 {% endif %}">
-                        <span class="text-[10px] font-semibold uppercase tracking-widest opacity-60">Preço</span>
-                        <span class="text-base font-extrabold tracking-tight">R$ {{ produto.preco_base }}</span>
-                    </div>
-
-                    <button onclick="adicionarAoCarrinho('{{ produto.id }}', '{{ produto.nome|addslashes }}', {{ produto.preco_base }})"
-                            class="w-full font-bold text-xs uppercase tracking-widest py-3 px-4 flex items-center justify-center gap-2 transition-all duration-300 rounded-lg shadow-md
-                            {% if lojista.tema == 'dark_neon' %} bg-green-500 hover:bg-green-400 text-black
-                            {% elif lojista.tema == 'luxury_gold' %} bg-amber-400 hover:bg-amber-500 text-black font-extrabold
-                            {% elif lojista.tema == 'sport_fire' %} bg-red-600 hover:bg-red-700 text-white
-                            {% elif lojista.tema == 'candy_pastels' %} bg-pink-400 hover:bg-pink-500 text-white
-                            {% elif lojista.tema == 'rustic_earth' %} bg-amber-900 hover:bg-amber-800 text-white
-                            {% elif lojista.tema == 'ocean_breeze' %} bg-cyan-600 hover:bg-cyan-700 text-white
-                            {% elif lojista.tema == 'warm_sunset' %} bg-amber-500 hover:bg-amber-600 text-white
-                            {% elif lojista.tema == 'vibrant_purple' %} bg-purple-600 hover:bg-purple-700 text-white
-                            {% elif lojista.tema == 'modern_emerald' %} bg-emerald-600 hover:bg-emerald-700 text-white
-                            {% elif lojista.tema == 'mint_fresh' %} bg-teal-500 hover:bg-teal-600 text-white
-                            {% elif lojista.tema == 'sunset_drive' %} bg-orange-500 hover:bg-orange-600 text-white
-                            {% elif lojista.tema == 'royal_blue' %} bg-blue-600 hover:bg-blue-700 text-white
-                            {% elif lojista.tema == 'vintage_craft' %} bg-amber-700 hover:bg-amber-800 text-white
-                            {% else %} bg-black hover:bg-gray-800 text-white {% endif %}">
-                        <span>Adicionar ao Carrinho</span>
-                    </button>
+            <div class="p-5 pt-0">
+                <div class="flex items-baseline justify-between mb-4 border-t pt-4 border-theme">
+                    <span class="text-[10px] font-semibold uppercase tracking-widest text-muted">Preço</span>
+                    <span class="text-base font-extrabold tracking-tight">R$ {{ produto.preco_base }}</span>
                 </div>
-
+                <button onclick="adicionarAoCarrinho('{{ produto.id }}', '{{ produto.nome|addslashes }}', {{ produto.preco_base }})"
+                        class="w-full font-bold text-xs uppercase tracking-widest py-3 px-4 flex items-center justify-center gap-2 transition-all duration-300 rounded-lg shadow-md btn-primary">
+                    <span>Adicionar ao Carrinho</span>
+                </button>
             </div>
-            {% empty %}
-            <div class="col-span-full py-20 text-center">
-                <p class="text-xs uppercase tracking-widest opacity-60 font-semibold">Nenhum produto cadastrado no momento.</p>
-            </div>
-            {% endfor %}
         </div>
-    </main>
-
-    <!-- DRAWER / MODAL DO CARRINHO -->
-    <div id="carrinho-overlay" onclick="toggleCarrinho()" class="fixed inset-0 bg-black/60 z-50 hidden backdrop-blur-sm transition-opacity duration-300"></div>
-    
-    <aside id="carrinho-drawer" class="fixed top-0 right-0 h-full w-full max-w-md z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between
-        {% if lojista.tema in 'dark_neon,luxury_gold,sport_fire' %} bg-neutral-900 text-white border-l border-neutral-800
-        {% else %} bg-white text-gray-900 border-l border-gray-200 {% endif %}">
-        
-        <!-- Topo do Carrinho -->
-        <div class="p-6 border-b flex items-center justify-between {% if lojista.tema in 'dark_neon,luxury_gold,sport_fire' %} border-neutral-800 {% else %} border-gray-100 {% endif %}">
-            <h2 class="text-base font-extrabold uppercase tracking-wider">Seu Carrinho</h2>
-            <button onclick="toggleCarrinho()" class="p-2 opacity-60 hover:opacity-100 text-lg font-bold">✕</button>
+        {% empty %}
+        <div class="col-span-full py-20 text-center">
+            <p class="text-xs uppercase tracking-widest text-muted font-semibold">Nenhum produto cadastrado no momento.</p>
         </div>
+        {% endfor %}
+    </div>
+</main>
 
-        <!-- Lista de Itens -->
-        <div id="itens-carrinho" class="p-6 overflow-y-auto flex-1 space-y-4">
-            <!-- Renderizado via JS -->
+<a href="https://wa.me/{{ lojista.whatsapp }}" target="_blank"
+   class="fixed bottom-6 left-6 z-40 w-12 h-12 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
+    <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor"><path d="M17.6 6.3A8.9 8.9 0 0 0 12 4a8.9 8.9 0 0 0-7.7 13.4L3 21l3.7-1.3A8.9 8.9 0 0 0 12 21a8.9 8.9 0 0 0 5.6-15.7ZM12 19.3a7.3 7.3 0 0 1-3.7-1l-.3-.2-2.7 1 .9-2.6-.2-.3A7.3 7.3 0 1 1 19.3 12 7.3 7.3 0 0 1 12 19.3Zm4-5.5c-.2-.1-1.3-.6-1.5-.7s-.3-.1-.5.1-.6.7-.8.9-.3.2-.6.1a6 6 0 0 1-1.7-1 6.6 6.6 0 0 1-1.2-1.5c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4c-.1-.1-.5-1.3-.7-1.8s-.4-.4-.5-.4h-.5a.9.9 0 0 0-.6.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.4 3.9c.6.3 1.1.4 1.5.5a3.6 3.6 0 0 0 1.6.1 2.7 2.7 0 0 0 1.7-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.4-.3Z"/></svg>
+</a>
+
+<div id="carrinho-overlay" onclick="toggleCarrinho()" class="fixed inset-0 bg-black/60 z-50 hidden backdrop-blur-sm transition-opacity duration-300"></div>
+
+<aside id="carrinho-drawer" class="fixed top-0 right-0 h-full w-full max-w-md z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between surface border-l">
+    <div class="p-6 border-b border-theme flex items-center justify-between">
+        <h2 class="text-base font-extrabold uppercase tracking-wider">Seu Carrinho</h2>
+        <button onclick="toggleCarrinho()" class="p-2 opacity-60 hover:opacity-100 text-lg font-bold">✕</button>
+    </div>
+
+    <div id="itens-carrinho" class="p-6 overflow-y-auto flex-1 space-y-4"></div>
+
+    <div class="p-6 border-t border-theme">
+        <div class="flex justify-between items-center mb-6">
+            <span class="text-xs font-bold uppercase tracking-wider text-muted">Total</span>
+            <span id="total-carrinho" class="text-xl font-extrabold">R$ 0,00</span>
         </div>
+        <button onclick="enviarPedidoWhatsapp('{{ lojista.whatsapp }}')"
+                class="w-full font-bold text-xs uppercase tracking-widest py-4 px-4 flex items-center justify-center gap-2 rounded-xl shadow-lg transition-all"
+                style="background:#25D366; color:#fff;">
+            <span>Finalizar Pedido no WhatsApp</span>
+        </button>
+    </div>
+</aside>
 
-        <!-- Rodapé do Carrinho -->
-        <div class="p-6 border-t {% if lojista.tema in 'dark_neon,luxury_gold,sport_fire' %} border-neutral-800 bg-neutral-950 {% else %} border-gray-100 bg-gray-50 {% endif %}">
-            <div class="flex justify-between items-center mb-6">
-                <span class="text-xs font-bold uppercase tracking-wider opacity-60">Total</span>
-                <span id="total-carrinho" class="text-xl font-extrabold">R$ 0,00</span>
-            </div>
-
-            <button onclick="enviarPedidoWhatsapp('{{ lojista.whatsapp }}')" 
-                    class="w-full font-bold text-xs uppercase tracking-widest py-4 px-4 flex items-center justify-center gap-2 rounded-xl shadow-lg transition-all
-                    {% if lojista.tema == 'dark_neon' %} bg-green-500 hover:bg-green-400 text-black
-                    {% elif lojista.tema == 'luxury_gold' %} bg-amber-400 hover:bg-amber-500 text-black
-                    {% elif lojista.tema == 'sport_fire' %} bg-red-600 hover:bg-red-700 text-white
-                    {% else %} bg-green-600 hover:bg-green-700 text-white {% endif %}">
-                <span>Finalizar Pedido no WhatsApp</span>
-            </button>
-        </div>
-    </aside>
+<footer class="text-center text-[10px] uppercase tracking-widest text-muted py-6">
+    Catálogo digital by <a href="https://innosoft.com.br" target="_blank" class="underline">Innosoft</a>
+</footer>
 
 <script>
-// VARIAÇÕES VIA DJANGO JSON
 const variacoesPorProduto = {
     {% for produto in produtos %}
         {% if produto.variacoes.exists %}
@@ -232,24 +190,22 @@ const variacoesPorProduto = {
     {% endfor %}
 };
 
-// ESTADO DO CARRINHO
 let carrinho = [];
 
-// 1. GERENCIAMENTO DE CATEGORIAS
 function filtrarCategoria(categoriaId, elementoBotao) {
     const produtos = document.querySelectorAll('.card-produto');
     const botoes = document.querySelectorAll('.btn-categoria');
 
-    // Atualizar estilos dos botões
     botoes.forEach(btn => {
-        btn.classList.remove('active-cat', 'bg-black', 'text-white', 'border-black');
+        btn.classList.remove('active-cat', 'btn-primary');
+        btn.style.borderColor = '';
         btn.classList.add('opacity-60', 'border-transparent');
     });
 
-    elementoBotao.classList.add('active-cat', 'bg-black', 'text-white', 'border-black');
+    elementoBotao.classList.add('active-cat', 'btn-primary');
+    elementoBotao.style.borderColor = 'var(--primary)';
     elementoBotao.classList.remove('opacity-60', 'border-transparent');
 
-    // Exibir/Ocultar produtos
     produtos.forEach(prod => {
         if (categoriaId === 'todas' || prod.getAttribute('data-categoria') === categoriaId) {
             prod.style.display = 'flex';
@@ -259,27 +215,22 @@ function filtrarCategoria(categoriaId, elementoBotao) {
     });
 }
 
-// 2. GERENCIAMENTO DE SELECTION VARIAÇÕES
 function inicializarVariacoes(produtoId) {
     const listaVariacoes = variacoesPorProduto[produtoId];
     if (!listaVariacoes) return;
 
     const selectTamanho = document.getElementById(`tamanho-${produtoId}`);
     const wrapperTamanho = document.getElementById(`wrapper-tamanho-${produtoId}`);
-
     const tamanhosUnicos = [...new Set(listaVariacoes.map(v => v.tamanho).filter(Boolean))];
-    
+
     if (selectTamanho) {
         selectTamanho.innerHTML = '';
         if (tamanhosUnicos.length === 0) {
             if (wrapperTamanho) wrapperTamanho.style.display = 'none';
         } else {
-            tamanhosUnicos.forEach(tam => {
-                selectTamanho.add(new Option(tam, tam));
-            });
+            tamanhosUnicos.forEach(tam => selectTamanho.add(new Option(tam, tam)));
         }
     }
-
     aoMudarTamanho(produtoId);
 }
 
@@ -290,7 +241,6 @@ function aoMudarTamanho(produtoId) {
     const selectTamanho = document.getElementById(`tamanho-${produtoId}`);
     const selectCor = document.getElementById(`cor-${produtoId}`);
     const wrapperCor = document.getElementById(`wrapper-cor-${produtoId}`);
-
     const tamanhoSelecionado = selectTamanho ? selectTamanho.value : '';
 
     const coresDisponiveis = [...new Set(
@@ -306,18 +256,14 @@ function aoMudarTamanho(produtoId) {
             if (wrapperCor) wrapperCor.style.display = 'none';
         } else {
             if (wrapperCor) wrapperCor.style.display = 'block';
-            coresDisponiveis.forEach(cor => {
-                selectCor.add(new Option(cor, cor));
-            });
+            coresDisponiveis.forEach(cor => selectCor.add(new Option(cor, cor)));
         }
     }
 }
 
-// 3. CARRINHO DE COMPRAS
 function toggleCarrinho() {
     const drawer = document.getElementById('carrinho-drawer');
     const overlay = document.getElementById('carrinho-overlay');
-    
     drawer.classList.toggle('translate-x-full');
     overlay.classList.toggle('hidden');
 }
@@ -330,21 +276,12 @@ function adicionarAoCarrinho(produtoId, nomeProduto, preco) {
     const cor = (selectCor && selectCor.parentElement.style.display !== 'none') ? selectCor.value : '';
 
     const itemChave = `${produtoId}-${tamanho}-${cor}`;
-
     const itemExistente = carrinho.find(i => i.chave === itemChave);
 
     if (itemExistente) {
         itemExistente.quantidade += 1;
     } else {
-        carrinho.push({
-            chave: itemChave,
-            id: produtoId,
-            nome: nomeProduto,
-            preco: parseFloat(preco),
-            tamanho: tamanho,
-            cor: cor,
-            quantidade: 1
-        });
+        carrinho.push({ chave: itemChave, id: produtoId, nome: nomeProduto, preco: parseFloat(preco), tamanho, cor, quantidade: 1 });
     }
 
     atualizarCarrinhoUI();
@@ -354,13 +291,8 @@ function adicionarAoCarrinho(produtoId, nomeProduto, preco) {
 function alterarQuantidade(chave, delta) {
     const item = carrinho.find(i => i.chave === chave);
     if (!item) return;
-
     item.quantidade += delta;
-
-    if (item.quantidade <= 0) {
-        carrinho = carrinho.filter(i => i.chave !== chave);
-    }
-
+    if (item.quantidade <= 0) carrinho = carrinho.filter(i => i.chave !== chave);
     atualizarCarrinhoUI();
 }
 
@@ -371,11 +303,10 @@ function atualizarCarrinhoUI() {
 
     let totalItens = 0;
     let valorTotal = 0;
-
     container.innerHTML = '';
 
     if (carrinho.length === 0) {
-        container.innerHTML = `<p class="text-center text-xs uppercase tracking-widest opacity-50 py-10">Carrinho vazio</p>`;
+        container.innerHTML = `<p class="text-center text-xs uppercase tracking-widest text-muted py-10">Carrinho vazio</p>`;
     } else {
         carrinho.forEach(item => {
             totalItens += item.quantidade;
@@ -383,20 +314,20 @@ function atualizarCarrinhoUI() {
 
             let detalhe = '';
             if (item.tamanho || item.cor) {
-                detalhe = `<span class="text-[10px] opacity-60 block">${item.tamanho ? 'Tam: ' + item.tamanho : ''} ${item.cor ? 'Cor: ' + item.cor : ''}</span>`;
+                detalhe = `<span class="text-[10px] text-muted block">${item.tamanho ? 'Tam: ' + item.tamanho : ''} ${item.cor ? 'Cor: ' + item.cor : ''}</span>`;
             }
 
             container.innerHTML += `
-                <div class="flex items-center justify-between border-b pb-4">
+                <div class="flex items-center justify-between border-b border-theme pb-4">
                     <div>
                         <h4 class="text-xs font-bold uppercase">${item.nome}</h4>
                         ${detalhe}
                         <span class="text-xs font-extrabold mt-1 block">R$ ${item.preco.toFixed(2)}</span>
                     </div>
-                    <div class="flex items-center border rounded-lg overflow-hidden">
-                        <button onclick="alterarQuantidade('${item.chave}', -1)" class="px-2 py-1 text-xs font-bold hover:bg-gray-200/20">-</button>
+                    <div class="flex items-center border border-theme rounded-lg overflow-hidden">
+                        <button onclick="alterarQuantidade('${item.chave}', -1)" class="px-2 py-1 text-xs font-bold hover:opacity-70">-</button>
                         <span class="px-3 text-xs font-bold">${item.quantidade}</span>
-                        <button onclick="alterarQuantidade('${item.chave}', 1)" class="px-2 py-1 text-xs font-bold hover:bg-gray-200/20">+</button>
+                        <button onclick="alterarQuantidade('${item.chave}', 1)" class="px-2 py-1 text-xs font-bold hover:opacity-70">+</button>
                     </div>
                 </div>
             `;
@@ -407,7 +338,6 @@ function atualizarCarrinhoUI() {
     totalEl.innerText = `R$ ${valorTotal.toFixed(2)}`;
 }
 
-// 4. ENVIO PARA O WHATSAPP
 function enviarPedidoWhatsapp(whatsapp) {
     if (carrinho.length === 0) {
         alert('Seu carrinho está vazio!');
@@ -420,7 +350,6 @@ function enviarPedidoWhatsapp(whatsapp) {
     carrinho.forEach((item, index) => {
         const subtotal = item.preco * item.quantidade;
         total += subtotal;
-
         mensagem += `${index + 1}. *${item.nome}*\n`;
         if (item.tamanho) mensagem += `   - Tamanho: ${item.tamanho}\n`;
         if (item.cor) mensagem += `   - Cor: ${item.cor}\n`;
@@ -428,11 +357,9 @@ function enviarPedidoWhatsapp(whatsapp) {
     });
 
     mensagem += `*TOTAL DO PEDIDO: R$ ${total.toFixed(2)}*`;
-
     window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(mensagem)}`, '_blank');
 }
 
-// INICIALIZAÇÃO
 document.addEventListener('DOMContentLoaded', () => {
     {% for produto in produtos %}
         {% if produto.variacoes.exists %}
