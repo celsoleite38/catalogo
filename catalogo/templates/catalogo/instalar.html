@@ -1,0 +1,131 @@
+{% load l10n %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instalar {{ lojista.nome_loja }}</title>
+<meta name="theme-color" content="{{ tema.bg }}">
+<link rel="manifest" href="{% url 'catalogo:manifest' lojista.slug %}">
+<link rel="icon" href="{% url 'catalogo:pwa_icon' lojista.slug 192 %}">
+<link rel="apple-touch-icon" href="{% url 'catalogo:pwa_icon' lojista.slug 192 %}">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: {{ tema.bg }};
+    --surface: {{ tema.surface }};
+    --border: {{ tema.border }};
+    --text: {{ tema.texto }};
+    --text-muted: {{ tema.texto_muted }};
+    --primary: {{ tema.primaria }};
+    --primary-hover: {{ tema.primaria_hover }};
+    --on-primary: {{ tema.texto_primaria }};
+  }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); }
+  .surface { background: var(--surface); border-color: var(--border); }
+  .btn-primary { background: var(--primary); color: var(--on-primary); }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .cover-gradient { background: linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary), #000 25%) 100%); }
+</style>
+</head>
+<body class="min-h-screen antialiased">
+
+<div class="cover-gradient px-6 pt-14 pb-20 text-center">
+    <img src="{% url 'catalogo:pwa_icon' lojista.slug 192 %}" alt="{{ lojista.nome_loja }}"
+         class="w-20 h-20 rounded-2xl mx-auto shadow-lg border-4 border-white/20">
+    <h1 class="mt-4 text-xl font-extrabold uppercase tracking-tight" style="color: var(--on-primary);">{{ lojista.nome_loja }}</h1>
+    <p class="text-xs font-medium tracking-wider uppercase mt-1 opacity-80" style="color: var(--on-primary);">Instale o catálogo no seu celular</p>
+</div>
+
+<main class="max-w-md mx-auto px-6 -mt-10">
+
+    <!-- Botão de instalação automática (Android/Chrome/Edge) -->
+    <div id="bloco-android" class="surface border rounded-2xl p-6 shadow-lg text-center hidden">
+        <p class="text-sm font-semibold mb-4">Toque no botão abaixo pra adicionar o catálogo na sua tela inicial, como um app.</p>
+        <button id="btn-instalar" class="btn-primary w-full font-bold text-sm uppercase tracking-wide py-4 rounded-xl shadow flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" /></svg>
+            Instalar agora
+        </button>
+        <p id="msg-ja-instalado" class="text-xs text-muted mt-3 hidden">Este catálogo já está instalado no seu celular ✓</p>
+    </div>
+
+    <!-- Instruções manuais (iPhone / Safari, que não tem instalação automática) -->
+    <div id="bloco-ios" class="surface border rounded-2xl p-6 shadow-lg hidden">
+        <p class="text-sm font-semibold mb-4">No iPhone, a instalação é manual (é assim que a Apple funciona, não tem como pular esse passo):</p>
+        <ol class="space-y-3 text-sm">
+            <li class="flex gap-3">
+                <span class="btn-primary w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
+                <span>Toque no ícone de <strong>Compartilhar</strong>
+                    <svg class="w-4 h-4 inline -mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0-12l-4 4m4-4l4 4M5 16v3a1 1 0 001 1h12a1 1 0 001-1v-3"/></svg>
+                    na barra do Safari (embaixo da tela).</span>
+            </li>
+            <li class="flex gap-3">
+                <span class="btn-primary w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
+                <span>Role e toque em <strong>"Adicionar à Tela de Início"</strong>.</span>
+            </li>
+            <li class="flex gap-3">
+                <span class="btn-primary w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
+                <span>Toque em <strong>"Adicionar"</strong> no canto superior direito. Pronto!</span>
+            </li>
+        </ol>
+    </div>
+
+    <!-- Fallback genérico (desktop ou navegador não suportado) -->
+    <div id="bloco-generico" class="surface border rounded-2xl p-6 shadow-lg text-center hidden">
+        <p class="text-sm font-semibold">Abra este link direto do celular do seu cliente pra instalar o catálogo como app.</p>
+    </div>
+
+    <a href="{% url 'catalogo:catalogo' lojista.slug %}" class="block text-center mt-6 text-xs font-bold uppercase tracking-widest text-muted hover:opacity-70">
+        Ou veja o catálogo sem instalar →
+    </a>
+</main>
+
+<footer class="text-center text-[10px] uppercase tracking-widest text-muted py-10">
+    Catálogo digital by <a href="https://innosoft.com.br" target="_blank" class="underline">Innosoft</a>
+</footer>
+
+<script>
+const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+const rodandoInstalado = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+
+let promptDiferido = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    promptDiferido = e;
+    document.getElementById('bloco-android').classList.remove('hidden');
+});
+
+document.getElementById('btn-instalar').addEventListener('click', async () => {
+    if (!promptDiferido) return;
+    promptDiferido.prompt();
+    await promptDiferido.userChoice;
+    promptDiferido = null;
+});
+
+if (rodandoInstalado) {
+    document.getElementById('bloco-android').classList.remove('hidden');
+    document.getElementById('btn-instalar').classList.add('hidden');
+    document.getElementById('msg-ja-instalado').classList.remove('hidden');
+} else if (ehIOS) {
+    document.getElementById('bloco-ios').classList.remove('hidden');
+} else {
+    // Android/Chrome sem o evento disparado ainda, ou desktop: mostra o botão
+    // e deixa o beforeinstallprompt assumir se disparar depois.
+    setTimeout(() => {
+        if (!promptDiferido) {
+            document.getElementById('bloco-generico').classList.remove('hidden');
+        }
+    }, 800);
+    document.getElementById('bloco-android').classList.remove('hidden');
+}
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js', { scope: '/{{ lojista.slug }}/' }).catch(() => {});
+}
+</script>
+
+</body>
+</html>

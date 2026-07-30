@@ -52,6 +52,24 @@
             </a>
         </div>
 
+        <!-- Divulgar o Catálogo como App -->
+        <div class="rounded-lg shadow-sm border border-gray-100 p-6 mb-6" style="background: linear-gradient(135deg, #111827, #1f2937);">
+            <h2 class="text-white font-bold text-sm uppercase tracking-wide mb-1">📲 Divulgue seu catálogo como app</h2>
+            <p class="text-gray-400 text-xs mb-4">Manda esse link pros seus clientes no WhatsApp ou nos stories. Eles clicam e instalam o catálogo na tela do celular, com sua marca.</p>
+            <div class="flex flex-col sm:flex-row gap-2">
+                <input id="link-instalar" type="text" readonly
+                       value="{{ request.scheme }}://{{ request.get_host }}{% url 'catalogo:instalar_app' lojista.slug %}"
+                       class="flex-1 bg-gray-800 text-gray-200 text-xs rounded-lg px-3 py-2.5 border border-gray-700 select-all">
+                <button onclick="copiarLinkInstalar()" id="btn-copiar" class="bg-white text-gray-800 text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-gray-100 transition whitespace-nowrap">
+                    Copiar link
+                </button>
+                <a id="link-whatsapp-divulgar" href="#" target="_blank"
+                   class="bg-green-500 hover:bg-green-600 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition whitespace-nowrap text-center">
+                    Enviar no WhatsApp
+                </a>
+            </div>
+        </div>
+
         <!-- Indicadores -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
@@ -304,6 +322,24 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         }
+
+        function copiarLinkInstalar() {
+            const input = document.getElementById('link-instalar');
+            input.select();
+            navigator.clipboard.writeText(input.value).then(() => {
+                const btn = document.getElementById('btn-copiar');
+                const textoOriginal = btn.textContent;
+                btn.textContent = 'Copiado ✓';
+                setTimeout(() => { btn.textContent = textoOriginal; }, 2000);
+            });
+        }
+
+        (function montarLinkWhatsappDivulgacao() {
+            const link = document.getElementById('link-instalar').value;
+            const nomeLoja = '{{ lojista.nome_loja|default:"Loja"|escapejs }}';
+            const mensagem = `Oi! Agora é só clicar aqui pra ver e instalar o catálogo da ${nomeLoja} no seu celular: ${link}`;
+            document.getElementById('link-whatsapp-divulgar').href = 'https://wa.me/?text=' + encodeURIComponent(mensagem);
+        })();
     </script>
 </body>
 </html>

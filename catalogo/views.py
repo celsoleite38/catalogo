@@ -4,9 +4,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView as AuthLoginView
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.utils.text import slugify
+from django.http import JsonResponse, HttpResponse
 from django import forms
+from io import BytesIO
 from .models import Produto, Categoria, VariacaoProduto, Lojista, TipoVariacao, ValorVariacao
 from .forms import ProdutoForm, CategoriaForm, ConfiguracaoLojistaForm, TipoVariacaoForm
 from django.contrib import messages
@@ -180,6 +182,124 @@ def ver_catalogo(request, slug):
         'tema': get_tema(lojista.tema),
     }
     return render(request, 'catalogo/app.html', context)
+
+
+def manifest_json(request, slug):
+    """Manifest do PWA de cada loja — cada lojista vira um 'app' instalável
+    isolado (nome, cor e ícone próprios), com escopo restrito à sua URL."""
+    lojista = get_object_or_404(Lojista, slug=slug, ativo=True)
+    tema = get_tema(lojista.tema)
+    data = {
+        "name": lojista.nome_loja,
+        "short_name": lojista.nome_loja[:15],
+        "start_url": f"/{lojista.slug}/?pwa=1",
+        "scope": f"/{lojista.slug}/",
+        "id": f"/{lojista.slug}/",
+        "display": "standalone",
+        "orientation": "portrait",
+        "background_color": tema["bg"],
+        "theme_color": tema["primaria"],
+        "icons": [
+            {
+                "src": reverse('catalogo:pwa_icon', args=[lojista.slug, 192]),
+                "sizes": "192x192",
+                "type": "image/png",
+                "purpose": "any maskable",
+            },
+            {
+                "src": reverse('catalogo:pwa_icon', args=[lojista.slug, 512]),
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "any maskable",
+            },
+        ],
+    }
+    return JsonResponse(data)
+
+
+def pwa_icon(request, slug, tamanho):
+    """Gera o ícone do app na hora, com a cor e a inicial da loja — assim
+    todo lojista tem um PWA instalável sem precisar subir logo nenhuma."""
+    from PIL import Image, ImageDraw, ImageFont
+
+    lojista = get_object_or_404(Lojista, slug=slug)
+    tema = get_tema(lojista.tema)
+    tamanho = max(48, min(tamanho, 512))
+
+    img = Image.new("RGB", (tamanho, tamanho), tema["primaria"])
+    draw = ImageDraw.Draw(img)
+    letra = (lojista.nome_loja or "L").strip()[0].upper()
+
+    tamanho_fonte = int(tamanho * 0.52)
+    fonte = None
+    for caminho_fonte in (
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+    ):
+        try:
+            fonte = ImageFont.truetype(caminho_fonte, tamanho_fonte)
+            break
+        except OSError:
+            continue
+    if fonte is None:
+        fonte = ImageFont.load_default()
+
+    bbox = draw.textbbox((0, 0), letra, font=fonte)
+    largura_texto = bbox[2] - bbox[0]
+    altura_texto = bbox[3] - bbox[1]
+    draw.text(
+        ((tamanho - largura_texto) / 2 - bbox[0], (tamanho - altura_texto) / 2 - bbox[1]),
+        letra,
+        font=fonte,
+        fill=tema["texto_primaria"],
+    )
+
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    resposta = HttpResponse(buffer.getvalue(), content_type="image/png")
+    resposta["Cache-Control"] = "public, max-age=604800"
+    return resposta
+
+
+def service_worker(request):
+    """Um único sw.js serve todas as lojas. Cada loja registra ele com
+    escopo próprio (/<slug>/), então instalar uma loja não afeta as outras."""
+    js = """
+const CACHE = 'catalogo-cache-v1';
+
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+  event.respondWith(
+    fetch(event.request)
+      .then((resposta) => {
+        const copia = resposta.clone();
+        caches.open(CACHE).then((cache) => cache.put(event.request, copia));
+        return resposta;
+      })
+      .catch(() => caches.match(event.request))
+  );
+});
+"""
+    resposta = HttpResponse(js, content_type="application/javascript")
+    resposta["Service-Worker-Allowed"] = "/"
+    resposta["Cache-Control"] = "no-cache"
+    return resposta
+
+
+def instalar_app(request, slug):
+    """Página que o lojista manda pro cliente final instalar o catálogo
+    como app na tela inicial do celular (Android e iPhone)."""
+    lojista = get_object_or_404(Lojista, slug=slug, ativo=True)
+    tema = get_tema(lojista.tema)
+    return render(request, 'catalogo/instalar.html', {'lojista': lojista, 'tema': tema})
 
 
 @login_required

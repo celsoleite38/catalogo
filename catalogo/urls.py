@@ -32,6 +32,12 @@ urlpatterns = [
 
     path('produtos/<int:pk>/editar/', views.editar_produto, name='editar_produto'),
 
+    # PWA (precisa vir antes do catch-all de slug)
+    path('sw.js', views.service_worker, name='service_worker'),
+    path('<slug:slug>/manifest.json', views.manifest_json, name='manifest'),
+    path('<slug:slug>/icone/<int:tamanho>/', views.pwa_icon, name='pwa_icon'),
+    path('<slug:slug>/instalar/', views.instalar_app, name='instalar_app'),
+
     # Catálogo público (Mantenha no final das rotas)
     path('<slug:slug>/', views.ver_catalogo, name='catalogo'),
 ]

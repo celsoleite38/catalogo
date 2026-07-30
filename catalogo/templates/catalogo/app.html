@@ -6,6 +6,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ lojista.nome_loja }} — Catálogo</title>
 <meta name="theme-color" content="{{ tema.bg }}">
+
+<!-- PWA: cada loja é um app instalável próprio -->
+<link rel="manifest" href="{% url 'catalogo:manifest' lojista.slug %}">
+<link rel="icon" href="{% url 'catalogo:pwa_icon' lojista.slug 192 %}">
+<link rel="apple-touch-icon" href="{% url 'catalogo:pwa_icon' lojista.slug 192 %}">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="{{ lojista.nome_loja }}">
+<meta name="mobile-web-app-capable" content="yes">
+
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -176,8 +186,12 @@
     </div>
 </aside>
 
-<footer class="text-center text-[10px] uppercase tracking-widest text-muted py-6">
-    Catálogo digital by <a href="https://innosoft.com.br" target="_blank" class="underline">Innosoft</a>
+<footer class="text-center text-[10px] uppercase tracking-widest text-muted py-6 space-y-2">
+    <a href="{% url 'catalogo:instalar_app' lojista.slug %}" class="btn-primary inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold normal-case tracking-normal text-xs no-underline">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" /></svg>
+        Instalar este catálogo no celular
+    </a>
+    <p>Catálogo digital by <a href="https://innosoft.com.br" target="_blank" class="underline">Innosoft</a></p>
 </footer>
 
 <script>
@@ -340,6 +354,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// PWA: registra o service worker com escopo restrito a esta loja,
+// pra instalar um catálogo não afetar os outros no mesmo domínio.
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js', { scope: '/{{ lojista.slug }}/' })
+        .catch(function(erro) { console.warn('Service worker não registrado:', erro); });
+}
 </script>
 </body>
 </html>
