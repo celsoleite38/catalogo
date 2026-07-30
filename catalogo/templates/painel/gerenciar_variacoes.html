@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Variações - {{ lojista.nome_loja }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen pb-12">
+
+    <nav class="bg-white border-b px-6 py-4 flex justify-between items-center">
+        <h1 class="font-bold text-xl text-gray-800">{{ lojista.nome_loja }} - Tipos de Variação</h1>
+        <a href="{% url 'catalogo:painel_lojista' %}" class="text-sm text-gray-600 hover:text-gray-900 font-semibold">
+            ← Voltar ao Painel
+        </a>
+    </nav>
+
+    <main class="max-w-3xl mx-auto mt-8 p-4">
+
+        {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+            <div class="px-4 py-3 rounded-lg text-sm font-semibold {% if message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-green-100 text-green-700 border border-green-200{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
+            <h2 class="font-bold text-gray-800 mb-4">Novo Tipo de Variação</h2>
+            <form method="post" class="flex gap-2">
+                {% csrf_token %}
+                {{ form.nome }}
+                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold px-4 py-2 rounded-lg text-sm transition whitespace-nowrap">
+                    Criar Tipo
+                </button>
+            </form>
+            <p class="text-xs text-gray-400 mt-2">Ex: Tamanho, Cor, Sabor, Borda, Voltagem...</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h2 class="font-bold text-gray-800 mb-4">Tipos e Valores</h2>
+            {% if tipos %}
+            <div class="space-y-6">
+                {% for tipo in tipos %}
+                <div class="border rounded-lg p-4 bg-gray-50">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-gray-700">{{ tipo.nome }}</h3>
+                        <a href="{% url 'catalogo:excluir_tipo_variacao' tipo.id %}" class="text-red-500 text-xs font-semibold hover:underline"
+                           onclick="return confirm('Excluir este tipo de variação? As variações vinculadas também serão removidas.')">
+                            Excluir Tipo
+                        </a>
+                    </div>
+
+                    <div class="space-y-2 mb-3">
+                        {% for valor in tipo.valores.all %}
+                        <div class="flex items-center justify-between bg-white rounded px-3 py-2 border">
+                            <span class="text-sm text-gray-600">{{ valor.nome }}</span>
+                            <a href="{% url 'catalogo:excluir_valor_variacao' valor.id %}" class="text-red-400 hover:text-red-600 text-xs font-bold"
+                               onclick="return confirm('Excluir o valor "{{ valor.nome }}" de {{ tipo.nome }}?')">✕</a>
+                        </div>
+                        {% empty %}
+                        <p class="text-xs text-gray-400 italic">Nenhum valor cadastrado ainda.</p>
+                        {% endfor %}
+                    </div>
+
+                    <form method="post" class="flex gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="tipo_id" value="{{ tipo.id }}">
+                        <input type="text" name="valor_nome" placeholder="Novo valor para {{ tipo.nome }}"
+                               class="flex-1 p-2 border rounded-lg text-sm" required>
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold px-3 py-2 rounded-lg text-xs transition">
+                            + Adicionar
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-400">Nenhum tipo cadastrado. Crie "Tamanho" e "Cor" para começar.</p>
+            {% endif %}
+        </div>
+
+    </main>
+</body>
+</html>

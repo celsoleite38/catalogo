@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Usuários</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen pb-12">
+
+    <nav class="bg-gray-900 text-white px-6 py-4 flex justify-between items-center">
+        <h1 class="font-bold text-lg">Usuários</h1>
+        <a href="{% url 'catalogo:admin_painel' %}" class="text-sm text-gray-300 hover:text-white">← Voltar</a>
+    </nav>
+
+    <main class="max-w-5xl mx-auto mt-8 p-4">
+
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+            <h2 class="text-lg font-bold text-gray-800">Todos os Usuários</h2>
+            <div class="flex gap-2 w-full sm:w-auto">
+                <input type="text" id="busca-usuario" placeholder="Buscar usuário ou email..." class="w-full sm:w-64 px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <a href="{% url 'catalogo:admin_usuario_novo' %}" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-4 py-2 rounded-lg transition whitespace-nowrap">
+                    + Novo
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm" id="tabela-usuarios">
+                    <thead>
+                        <tr class="bg-gray-50 border-b text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th class="text-left px-6 py-3 cursor-pointer hover:text-gray-700 sortable" data-col="username">Usuário <span class="seta">↕</span></th>
+                            <th class="text-left px-6 py-3 cursor-pointer hover:text-gray-700 sortable" data-col="email">Email <span class="seta">↕</span></th>
+                            <th class="text-center px-6 py-3 cursor-pointer hover:text-gray-700 sortable" data-col="lojas">Lojas <span class="seta">↕</span></th>
+                            <th class="text-center px-6 py-3 cursor-pointer hover:text-gray-700 sortable" data-col="tipo">Tipo <span class="seta">↕</span></th>
+                            <th class="text-center px-6 py-3 cursor-pointer hover:text-gray-700 sortable" data-col="status">Status <span class="seta">↕</span></th>
+                            <th class="text-right px-6 py-3">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for usuario in usuarios %}
+                        <tr class="linha-usuario hover:bg-gray-50 transition" data-username="{{ usuario.username|lower }}" data-email="{{ usuario.email|lower }}" data-lojas="{{ usuario.lojas.count }}" data-tipo="{% if usuario.is_superuser %}admin{% else %}lojista{% endif %}" data-status="{% if usuario.is_active %}ativo{% else %}inativo{% endif %}">
+                            <td class="px-6 py-4">
+                                <p class="font-semibold text-gray-800">{{ usuario.username }}</p>
+                            </td>
+                            <td class="px-6 py-4 text-gray-500">{{ usuario.email|default:'—' }}</td>
+                            <td class="px-6 py-4 text-center">
+                                {% if usuario.lojas.all %}
+                                <div class="flex flex-wrap gap-1 justify-center">
+                                    {% for loja in usuario.lojas.all %}
+                                    <a href="{% url 'catalogo:admin_loja_editar' loja.id %}" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-semibold px-2 py-1 rounded-lg transition">
+                                        {{ loja.nome_loja }}
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <span class="text-xs text-gray-400">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                {% if usuario.is_superuser %}
+                                <span class="text-xs bg-gray-800 text-white px-2 py-0.5 rounded-full font-semibold">Admin</span>
+                                {% else %}
+                                <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold">Lojista</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                {% if usuario.is_active %}
+                                <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">Ativo</span>
+                                {% else %}
+                                <span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-semibold">Inativo</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex gap-1 justify-end">
+                                    {% if not usuario.is_superuser %}
+                                    <a href="{% url 'catalogo:admin_usuario_desativar' usuario.id %}" class="desativar-user-btn bg-yellow-50 hover:bg-yellow-100 text-yellow-600 text-xs font-semibold px-3 py-1.5 rounded-lg transition" data-nome="{{ usuario.username }}" data-ativo="{{ usuario.is_active|lower }}">
+                                        {% if usuario.is_active %}Desativar{% else %}Ativar{% endif %}
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-10 text-center text-gray-400 text-sm">Nenhum usuário cadastrado.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-6 py-3 border-t bg-gray-50 text-xs text-gray-500 flex justify-between items-center">
+                <span id="contador-usuarios">Mostrando {{ usuarios|length }} de {{ usuarios|length }} usuários</span>
+            </div>
+        </div>
+
+    </main>
+    <script>
+    (function() {
+        var busca = document.getElementById('busca-usuario');
+        var linhas = document.querySelectorAll('.linha-usuario');
+        var contador = document.getElementById('contador-usuarios');
+
+        function filtrar() {
+            var termo = busca.value.toLowerCase().trim();
+            var visiveis = 0;
+            linhas.forEach(function(linha) {
+                var match = linha.dataset.username.includes(termo) || linha.dataset.email.includes(termo);
+                linha.style.display = match ? '' : 'none';
+                if (match) visiveis++;
+            });
+            contador.textContent = 'Mostrando ' + visiveis + ' de ' + linhas.length + ' usuários';
+        }
+
+        busca.addEventListener('input', filtrar);
+
+        // Ordenação
+        var ths = document.querySelectorAll('.sortable');
+        var direcao = {};
+
+        ths.forEach(function(th) {
+            th.addEventListener('click', function() {
+                var col = th.dataset.col;
+                var dir = direcao[col] === 'asc' ? 'desc' : 'asc';
+                direcao[col] = dir;
+
+                ths.forEach(function(t) { t.querySelector('.seta').textContent = '↕'; });
+                th.querySelector('.seta').textContent = dir === 'asc' ? '↑' : '↓';
+
+                var tbody = document.querySelector('#tabela-usuarios tbody');
+                var rows = Array.from(tbody.querySelectorAll('.linha-usuario'));
+
+                rows.sort(function(a, b) {
+                    var va = a.dataset[col];
+                    var vb = b.dataset[col];
+                    if (col === 'lojas') {
+                        va = parseInt(va) || 0;
+                        vb = parseInt(vb) || 0;
+                        return dir === 'asc' ? va - vb : vb - va;
+                    }
+                    va = va || '';
+                    vb = vb || '';
+                    var cmp = va.localeCompare(vb, 'pt');
+                    return dir === 'asc' ? cmp : -cmp;
+                });
+
+                rows.forEach(function(row) { tbody.appendChild(row); });
+            });
+        });
+    })();
+
+    document.querySelectorAll('.desativar-user-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            var nome = this.dataset.nome;
+            var ativo = this.dataset.ativo === 'true';
+            var acao = ativo ? 'desativar' : 'ativar';
+            if (!confirm('Tem certeza que deseja ' + acao + ' o usuário "' + nome + '"?')) {
+                e.preventDefault();
+            }
+        });
+    });
+    </script>
+</body>
+</html>

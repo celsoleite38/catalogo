@@ -1,5 +1,5 @@
 from django import forms
-from .models import Produto, Categoria, VariacaoProduto, Lojista
+from .models import Produto, Categoria, VariacaoProduto, Lojista, TipoVariacao
 
 
 class CategoriaForm(forms.ModelForm):
@@ -67,5 +67,16 @@ class ConfiguracaoLojistaForm(forms.ModelForm):
             }),
             'tema': forms.Select(attrs={
                 'class': 'w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:outline-none bg-white'
+            }),
+        }
+
+class TipoVariacaoForm(forms.ModelForm):
+    class Meta:
+        model = TipoVariacao
+        fields = ['nome']
+        widgets = {
+            'nome': forms.TextInput(attrs={
+                'class': 'w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none',
+                'placeholder': 'Ex: Tamanho, Cor, Sabor, Cobertura'
             }),
         }

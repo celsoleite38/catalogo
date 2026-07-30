@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Lojista, Categoria, Produto, VariacaoProduto
+from .models import Lojista, Categoria, Produto, VariacaoProduto, TipoVariacao, ValorVariacao
 
 class VariacaoInline(admin.TabularInline):
     model = VariacaoProduto
@@ -15,6 +15,20 @@ class LojistaAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('nome_loja',)}
     inlines = [CategoriaInline]
 
+@admin.register(TipoVariacao)
+class TipoVariacaoAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'lojista')
+    list_filter = ('lojista',)
+
+@admin.register(ValorVariacao)
+class ValorVariacaoAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'tipo', 'tipo_lojista')
+    list_filter = ('tipo__lojista',)
+
+    @admin.display(description='Lojista')
+    def tipo_lojista(self, obj):
+        return obj.tipo.lojista.nome_loja
+
 @admin.register(Categoria)
 class CategoriaAdmin(admin.ModelAdmin):
     list_display = ('nome', 'lojista', 'ordem')
@@ -28,7 +42,7 @@ class CategoriaAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if not request.user.is_superuser:
-            obj.lojista = request.user.lojista
+            obj.lojista = request.user.lojas.first()
         super().save_model(request, obj, form, change)
 
 @admin.register(Produto)
@@ -55,7 +69,7 @@ class ProdutoAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if not request.user.is_superuser:
-            obj.lojista = request.user.lojista
+            obj.lojista = request.user.lojas.first()
         else:
             # Se for superusuario cadastrando o produto, atrela o lojista dono da categoria
             if obj.categoria and not getattr(obj, 'lojista', None):

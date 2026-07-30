@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - {% if lojista %}Editar{% else %}Nova{% endif %} Loja</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen pb-12">
+
+    <nav class="bg-gray-900 text-white px-6 py-4 flex justify-between items-center">
+        <h1 class="font-bold text-lg">{% if lojista %}Editar{% else %}Nova{% endif %} Loja</h1>
+        <a href="{% url 'catalogo:admin_painel' %}" class="text-sm text-gray-300 hover:text-white">← Voltar</a>
+    </nav>
+
+    <main class="max-w-2xl mx-auto mt-8 p-4">
+
+        {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+            <div class="px-4 py-3 rounded-lg text-sm font-semibold {% if message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-green-100 text-green-700 border border-green-200{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border">
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Usuário Dono *</label>
+                    <select name="user_id" required class="w-full p-2.5 border rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:outline-none">
+                        <option value="">Selecione...</option>
+                        {% for u in usuarios %}
+                        <option value="{{ u.id }}" {% if lojista and lojista.user_id == u.id %}selected{% endif %}>
+                            {{ u.username }} ({{ u.email }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nome da Loja *</label>
+                    <input type="text" name="nome_loja" value="{{ lojista.nome_loja|default:'' }}" required class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">WhatsApp</label>
+                    <input type="text" name="whatsapp" value="{{ lojista.whatsapp|default:'' }}" placeholder="Ex: 5535999998888" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Tema</label>
+                    <select name="tema" class="w-full p-2.5 border rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:outline-none">
+                        {% for key, label in temas %}
+                        <option value="{{ key }}" {% if lojista and lojista.tema == key %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Categorias -->
+                <div class="border-t pt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-sm text-gray-800">Categorias</h3>
+                        <button type="button" onclick="adicionarCampo('categoria')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-lg font-semibold">
+                            + Adicionar
+                        </button>
+                    </div>
+                    <div id="container-categorias" class="space-y-2">
+                        {% if lojista %}
+                            {% for cat in lojista.categorias.all %}
+                            <div class="flex gap-2 items-center">
+                                <input type="text" name="categoria_nome[]" placeholder="Ex: Camisetas" value="{{ cat.nome }}" class="w-full p-2 border rounded-lg text-sm">
+                                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm font-bold px-1">✕</button>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Tipos de Variação -->
+                <div class="border-t pt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-sm text-gray-800">Tipos de Variação</h3>
+                        <button type="button" onclick="adicionarCampo('tipo')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-lg font-semibold">
+                            + Adicionar
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-2">Ex: Tamanho, Cor, Sabor, Voltagem...</p>
+                    <div id="container-tipos" class="space-y-2">
+                        {% if lojista %}
+                            {% for tipo in lojista.tipos_variacao.all %}
+                            <div class="flex gap-2 items-center">
+                                <input type="text" name="tipo_nome[]" placeholder="Ex: Tamanho" value="{{ tipo.nome }}" class="w-full p-2 border rounded-lg text-sm">
+                                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm font-bold px-1">✕</button>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition">
+                        {% if lojista %}Salvar Alterações{% else %}Criar Loja{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+    function adicionarCampo(tipo) {
+        const container = document.getElementById('container-' + tipo + 's');
+        const div = document.createElement('div');
+        div.className = 'flex gap-2 items-center';
+        const placeholder = tipo === 'categoria' ? 'Ex: Camisetas' : 'Ex: Tamanho';
+        div.innerHTML = `
+            <input type="text" name="${tipo}_nome[]" placeholder="${placeholder}" class="w-full p-2 border rounded-lg text-sm">
+            <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm font-bold px-1">✕</button>
+        `;
+        container.appendChild(div);
+    }
+
+    // Se for nova loja, adiciona campos padrão
+    {% if not lojista %}
+    document.addEventListener('DOMContentLoaded', function() {
+        adicionarCampo('categoria');
+        adicionarCampo('tipo');
+        adicionarCampo('tipo');
+        // Preenche tipos padrão
+        const tiposContainer = document.getElementById('container-tipos');
+        const inputs = tiposContainer.querySelectorAll('input');
+        if (inputs.length >= 1) inputs[0].value = 'Tamanho';
+        if (inputs.length >= 2) inputs[1].value = 'Cor';
+    });
+    {% endif %}
+    </script>
+</body>
+</html>

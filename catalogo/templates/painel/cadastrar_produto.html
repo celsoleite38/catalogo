@@ -1,16 +1,16 @@
+{% load catalogo_extras l10n %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Novo Produto - {{ lojista.nome_loja }}</title>
+    <title>{% if editando %}Editar{% else %}Novo{% endif %} Produto - {{ lojista.nome_loja }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen pb-12">
 
-    <!-- Topbar -->
     <nav class="bg-white border-b px-6 py-4 flex justify-between items-center">
-        <h1 class="font-bold text-xl text-gray-800">{{ lojista.nome_loja }} - Cadastrar Produto</h1>
+        <h1 class="font-bold text-xl text-gray-800">{{ lojista.nome_loja }} - {% if editando %}Editar{% else %}Cadastrar{% endif %} Produto</h1>
         <a href="{% url 'catalogo:painel_lojista' %}" class="text-sm text-gray-600 hover:text-gray-900 font-semibold">
             ← Voltar ao Painel
         </a>
@@ -74,21 +74,44 @@
                 </div>
                 {% endif %}
 
-                <!-- Seção de Variações (Tamanho e Cor) -->
+                <!-- Seção de Variações -->
                 <div class="border-t pt-4 mt-6">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="font-bold text-gray-800">Variações (Tamanhos e Cores)</h3>
-                        <button type="button" onclick="adicionarVariacao()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg font-semibold">
-                            + Adicionar Variação
-                        </button>
-                    </div>
+                    <h3 class="font-bold text-gray-800 mb-3">Variações</h3>
+                    <p class="text-xs text-gray-400 mb-4">Marque os valores que este produto possui e defina o preço adicional (se houver).</p>
 
-                    <div id="container-variacoes" class="space-y-2">
-                        <div class="flex gap-2 items-center">
-                            <input type="text" name="tamanho[]" placeholder="Tamanho (Ex: P, M, 42)" class="w-1/2 p-2 border rounded-lg text-sm">
-                            <input type="text" name="cor[]" placeholder="Cor (Ex: Azul, Preto)" class="w-1/2 p-2 border rounded-lg text-sm">
-                        </div>
+                    {% for tipo in tipos_variacao %}
+                    <div class="mb-4 p-4 bg-gray-50 rounded-lg border">
+                        <h4 class="font-bold text-sm text-gray-700 mb-2">{{ tipo.nome }}</h4>
+                        {% with valores=tipo.valores.all %}
+                            {% if valores %}
+                            <div class="space-y-2">
+                                {% for valor in valores %}
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" name="valor_ids[]" value="{{ valor.id }}"
+                                           id="val-{{ valor.id }}" class="rounded border-gray-300"
+                                           {% if valor.id in selected_valores %}checked{% endif %}>
+                                    <label for="val-{{ valor.id }}" class="text-sm text-gray-600 flex-1">{{ valor.nome }}</label>
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-xs text-gray-400">+R$</span>
+                                        <input type="number" step="0.01" name="preco_adicional_{{ valor.id }}"
+                                               value="{{ precos_adicionais|get_item:valor.id|stringformat:'s'|unlocalize }}"
+                                               class="w-20 p-1.5 border rounded-lg text-xs text-right" min="0">
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-xs text-gray-400 italic">Nenhum valor cadastrado para {{ tipo.nome }}.
+                                <a href="{% url 'catalogo:gerenciar_variacoes' %}" class="text-blue-500 underline">Cadastrar valores</a>
+                            </p>
+                            {% endif %}
+                        {% endwith %}
                     </div>
+                    {% empty %}
+                    <p class="text-xs text-gray-400">Nenhum tipo de variação cadastrado.
+                        <a href="{% url 'catalogo:gerenciar_variacoes' %}" class="text-blue-500 underline">Cadastrar tipos</a>
+                    </p>
+                    {% endfor %}
                 </div>
 
                 <div class="flex items-center gap-2 pt-2">
@@ -98,7 +121,7 @@
 
                 <div class="pt-4">
                     <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-lg shadow transition">
-                        Salvar Produto
+                        {% if editando %}Atualizar Produto{% else %}Salvar Produto{% endif %}
                     </button>
                 </div>
             </form>
@@ -113,17 +136,6 @@
                 input.value = '';
             }
         }
-    }
-    function adicionarVariacao() {
-        const container = document.getElementById('container-variacoes');
-        const novaLinha = document.createElement('div');
-        novaLinha.className = 'flex gap-2 items-center';
-        novaLinha.innerHTML = `
-            <input type="text" name="tamanho[]" placeholder="Tamanho (Ex: G, GG)" class="w-1/2 p-2 border rounded-lg text-sm">
-            <input type="text" name="cor[]" placeholder="Cor (Ex: Vermelho)" class="w-1/2 p-2 border rounded-lg text-sm">
-            <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm font-bold px-1">✕</button>
-        `;
-        container.appendChild(novaLinha);
     }
     </script>
 </body>

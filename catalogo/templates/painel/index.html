@@ -1,3 +1,4 @@
+{% load l10n %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -43,6 +44,9 @@
             <a href="{% url 'catalogo:cadastrar_produto' %}" class="bg-green-500 hover:bg-green-600 text-white text-sm font-bold px-4 py-2 rounded-lg shadow transition">
                 + Novo Produto
             </a>
+            <a href="{% url 'catalogo:gerenciar_variacoes' %}" class="bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+                Tipos de Variação
+            </a>
             <a href="{% url 'catalogo:configuracoes_lojista' %}" class="bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
                 ⚙️ Aparência & Tema
             </a>
@@ -78,7 +82,7 @@
 
                         <!-- Botão que abre o Modal e passa os dados do produto -->
                         <button type="button" 
-                            onclick="abrirModalEditar('{{ p.id }}', '{{ p.nome|escapejs }}', '{{ p.preco_base }}', '{{ p.categoria.id }}', '{{ p.ativo|yesno:'true,false' }}', '{% if p.foto %}{{ p.foto.url }}{% endif %}', '{% if p.foto2 %}{{ p.foto2.url }}{% endif %}')"
+                            onclick="abrirModalEditar('{{ p.id }}', '{{ p.nome|escapejs }}', '{{ p.preco_base|unlocalize }}', '{{ p.categoria.id }}', '{{ p.ativo|yesno:'true,false' }}', '{% if p.foto %}{{ p.foto.url }}{% endif %}', '{% if p.foto2 %}{{ p.foto2.url }}{% endif %}')"
                             class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-semibold px-3 py-1.5 rounded-lg transition">
                         ✏️ Editar
                     </button>
@@ -110,9 +114,10 @@
                 </div>
 
                 <!-- Preço -->
+                <!-- Preço Base -->
                 <div class="mb-4">
                     <label class="block text-xs font-semibold text-gray-700 mb-1">Preço Base (R$)</label>
-                    <input type="number" step="0.01" name="preco_base" id="edit_preco_base" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <input type="text" name="preco_base" id="edit_preco_base" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="0,00">
                 </div>
 
                 <!-- Categoria -->
@@ -146,6 +151,25 @@
                     </div>
                 </div>
 
+                <!-- Seção de Variações -->
+                <div class="mb-4 border-t pt-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-sm text-gray-800">Variações</h3>
+                        <div class="flex gap-2">
+                            <select id="edit-select-tipo-variacao" class="text-xs p-2 border rounded-lg bg-white">
+                                <option value="">Selecione...</option>
+                                {% for tipo in tipos_variacao %}
+                                <option value="{{ tipo.id }}">{{ tipo.nome }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="button" onclick="adicionarVariacaoEditar()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-lg font-semibold">
+                                + Adicionar
+                            </button>
+                        </div>
+                    </div>
+                    <div id="edit-container-variacoes" class="space-y-2"></div>
+                </div>
+
                 <!-- Produto Ativo -->
                 <div class="mb-6 flex items-center gap-2">
                     <input type="checkbox" name="ativo" id="edit_ativo" class="rounded text-indigo-600 focus:ring-indigo-500">
@@ -167,6 +191,26 @@
 
     <!-- SCRIPT DE CONTROLE DO MODAL -->
     <script>
+        const tiposVariacao = {
+            {% for tipo in tipos_variacao %}
+                '{{ tipo.id }}': '{{ tipo.nome|escapejs }}',
+            {% endfor %}
+        };
+        const variacoesPorProduto = {
+            {% for p in produtos %}
+                '{{ p.id }}': [
+                    {% for v in p.variacoes.all %}
+                        { 
+                            tipo_id: "{{ v.tipo_id }}", 
+                            tipo_nome: "{{ v.tipo.nome|escapejs }}", 
+                            valor: "{{ v.valor|escapejs }}", 
+                            preco_adicional: "{{ v.preco_adicional|unlocalize }}" 
+                        },
+                    {% endfor %}
+                ],
+            {% endfor %}
+        };
+
         function validarTamanhoFoto(input) {
             if (input.files && input.files[0]) {
                 if (input.files[0].size > 2 * 1024 * 1024) {
@@ -176,6 +220,37 @@
             }
         }
 
+        function adicionarVariacaoEditar(dados) {
+    const select = document.getElementById('edit-select-tipo-variacao');
+    const tipoId = dados ? dados.tipo_id : (select ? select.value : '');
+    const tipoNome = dados ? dados.tipo_nome : (select ? select.options[select.selectedIndex]?.text || '' : '');
+
+    if (!tipoId && !dados) {
+        alert('Selecione um tipo de variação primeiro.');
+        return;
+    }
+
+    const container = document.getElementById('edit-container-variacoes');
+        const linha = document.createElement('div');
+        linha.className = 'flex gap-2 items-center';
+        
+        const valor = dados ? dados.valor : '';
+        
+        // Tratamento para garantir formato com PONTO decimal exigido pelo input type="number"
+        let pa = '0.00';
+        if (dados && dados.preco_adicional !== undefined && dados.preco_adicional !== null && dados.preco_adicional !== '') {
+            pa = String(dados.preco_adicional).replace(',', '.');
+        }
+
+        linha.innerHTML = `
+            <input type="hidden" name="tipo_id[]" value="${tipoId}">
+            <span class="text-xs font-semibold text-gray-600 w-1/5">${tipoNome}:</span>
+            <input type="text" name="valor[]" placeholder="Valor" value="${valor}" class="w-2/5 p-2 border rounded-lg text-sm">
+            <input type="number" step="0.01" name="preco_adicional[]" placeholder="+R$" value="${pa}" class="w-1/5 p-2 border rounded-lg text-sm">
+            <button type="button" onclick="this.parentElement.remove()" class="text-red-500 text-sm font-bold px-1">✕</button>
+        `;
+        container.appendChild(linha);
+    }
         function abrirModalEditar(id, nome, preco, categoriaId, ativo, foto1Url, foto2Url) {
             const modal = document.getElementById('modalEditarProduto');
             const form = document.getElementById('formEditarProduto');
@@ -183,7 +258,7 @@
             form.action = `/produtos/${id}/editar/`;
 
             document.getElementById('edit_nome').value = nome;
-            document.getElementById('edit_preco_base').value = preco.replace(',', '.');
+            document.getElementById('edit_preco_base').value = preco.replace('.', ',');
             document.getElementById('edit_categoria').value = categoriaId;
             document.getElementById('edit_ativo').checked = (ativo === 'true');
 
@@ -205,6 +280,19 @@
                 containerFoto2.classList.remove('hidden');
             } else {
                 containerFoto2.classList.add('hidden');
+            }
+
+            // Carrega variações
+            const containerVar = document.getElementById('edit-container-variacoes');
+            containerVar.innerHTML = '';
+            const variacoes = variacoesPorProduto[id] || [];
+            if (variacoes.length === 0) {
+                const primeiroTipo = document.querySelector('#edit-select-tipo-variacao option:not(:first-child)');
+                if (primeiroTipo) {
+                    adicionarVariacaoEditar({ tipo_id: primeiroTipo.value, tipo_nome: primeiroTipo.text, valor: '', preco_adicional: '0.00' });
+                }
+            } else {
+                variacoes.forEach(v => adicionarVariacaoEditar(v));
             }
 
             modal.classList.remove('hidden');

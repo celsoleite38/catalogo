@@ -1,3 +1,4 @@
+{% load l10n %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -39,9 +40,6 @@
 
 <div class="cover-gradient px-6 pt-10 pb-16 text-center relative overflow-hidden">
     <div class="relative z-10">
-        {% if lojista.logo %}
-            <img src="{{ lojista.logo.url }}" alt="{{ lojista.nome_loja }}" class="w-20 h-20 rounded-full object-cover mx-auto border-4 border-white/30 shadow-lg">
-        {% endif %}
         <h1 class="mt-4 text-2xl font-extrabold tracking-tight uppercase" style="color: var(--on-primary);">{{ lojista.nome_loja }}</h1>
         <p class="text-xs font-medium tracking-wider uppercase mt-1 opacity-80" style="color: var(--on-primary);">Catálogo Oficial</p>
     </div>
@@ -50,7 +48,7 @@
 <header class="sticky top-0 z-40 surface-blur border-b -mt-6 rounded-t-3xl relative">
     <div class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
         <h2 class="text-sm font-extrabold tracking-tight uppercase">{{ lojista.nome_loja }}</h2>
-        <button onclick="toggleCarrinho()" class="relative p-2.5 rounded-xl border surface flex items-center gap-2 transition-all duration-300 hover:opacity-80">
+        <button id="btn-toggle-carrinho" class="relative p-2.5 rounded-xl border surface flex items-center gap-2 transition-all duration-300 hover:opacity-80">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
@@ -63,11 +61,11 @@
 {% if categorias %}
 <nav class="sticky top-[69px] z-30 border-b py-3 overflow-x-auto surface-blur">
     <div class="max-w-4xl mx-auto px-6 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider whitespace-nowrap">
-        <button onclick="filtrarCategoria('todas', this)" class="btn-categoria active-cat px-3 py-1.5 rounded-lg border transition-all duration-300 btn-primary" style="border-color: var(--primary);">
+        <button data-categoria="todas" class="btn-categoria active-cat px-3 py-1.5 rounded-lg border transition-all duration-300 btn-primary" style="border-color: var(--primary);">
             Todos
         </button>
         {% for cat in categorias %}
-            <button onclick="filtrarCategoria('cat-{{ cat.id }}', this)" class="btn-categoria px-3 py-1.5 rounded-lg border border-transparent opacity-60 hover:opacity-100 transition-all duration-300">
+            <button data-categoria="cat-{{ cat.id }}" class="btn-categoria px-3 py-1.5 rounded-lg border border-transparent opacity-60 hover:opacity-100 transition-all duration-300">
                 {{ cat.nome }}
             </button>
         {% endfor %}
@@ -110,17 +108,22 @@
                         <p class="text-xs text-muted mt-2 line-clamp-2 leading-relaxed">{{ produto.descricao }}</p>
                     {% endif %}
 
-                    {% if produto.variacoes.exists %}
-                    <div class="mt-4 space-y-3 pt-3 border-t border-theme">
-                        <div id="wrapper-tamanho-{{ produto.id }}">
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-muted mb-1">Tamanho:</label>
-                            <select id="tamanho-{{ produto.id }}" onchange="aoMudarTamanho('{{ produto.id }}')"
-                                    class="w-full text-xs font-semibold py-2 px-3 rounded-lg border outline-none transition-colors surface"></select>
+                    {% regroup produto.variacoes.all by tipo as variacoes_por_tipo %}
+                    {% if variacoes_por_tipo %}
+                    <div class="variacoes-produto mt-4 space-y-3 pt-3 border-t border-theme">
+                        {% for tipo, items in variacoes_por_tipo %}
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-muted mb-1">{{ tipo.nome }}:</label>
+                            <select class="select-variacao w-full text-xs font-semibold py-2 px-3 rounded-lg border outline-none transition-colors surface"
+                                    data-produto-id="{{ produto.id }}"
+                                    onchange="atualizarPreco({{ produto.id }})">
+                                <option value="">Selecione {{ tipo.nome }}</option>
+                                {% for v in items %}
+                                <option value="{{ v.valor }}" data-preco="{{ v.preco_adicional|unlocalize }}">{{ v.valor }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
-                        <div id="wrapper-cor-{{ produto.id }}">
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-muted mb-1">Cor:</label>
-                            <select id="cor-{{ produto.id }}" class="w-full text-xs font-semibold py-2 px-3 rounded-lg border outline-none transition-colors surface"></select>
-                        </div>
+                        {% endfor %}
                     </div>
                     {% endif %}
                 </div>
@@ -129,10 +132,10 @@
             <div class="p-5 pt-0">
                 <div class="flex items-baseline justify-between mb-4 border-t pt-4 border-theme">
                     <span class="text-[10px] font-semibold uppercase tracking-widest text-muted">Preço</span>
-                    <span class="text-base font-extrabold tracking-tight">R$ {{ produto.preco_base }}</span>
+                    <span class="preco-produto text-base font-extrabold tracking-tight" data-produto-id="{{ produto.id }}" data-base="{{ produto.preco_base|unlocalize }}">R$ {{ produto.preco_base }}</span>
                 </div>
-                <button onclick="adicionarAoCarrinho('{{ produto.id }}', '{{ produto.nome|addslashes }}', {{ produto.preco_base }})"
-                        class="w-full font-bold text-xs uppercase tracking-widest py-3 px-4 flex items-center justify-center gap-2 transition-all duration-300 rounded-lg shadow-md btn-primary">
+                <button data-produto-id="{{ produto.id }}" data-produto-nome="{{ produto.nome|escape }}"
+                        class="btn-add-carrinho w-full font-bold text-xs uppercase tracking-widest py-3 px-4 flex items-center justify-center gap-2 transition-all duration-300 rounded-lg shadow-md btn-primary">
                     <span>Adicionar ao Carrinho</span>
                 </button>
             </div>
@@ -150,12 +153,12 @@
     <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor"><path d="M17.6 6.3A8.9 8.9 0 0 0 12 4a8.9 8.9 0 0 0-7.7 13.4L3 21l3.7-1.3A8.9 8.9 0 0 0 12 21a8.9 8.9 0 0 0 5.6-15.7ZM12 19.3a7.3 7.3 0 0 1-3.7-1l-.3-.2-2.7 1 .9-2.6-.2-.3A7.3 7.3 0 1 1 19.3 12 7.3 7.3 0 0 1 12 19.3Zm4-5.5c-.2-.1-1.3-.6-1.5-.7s-.3-.1-.5.1-.6.7-.8.9-.3.2-.6.1a6 6 0 0 1-1.7-1 6.6 6.6 0 0 1-1.2-1.5c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4c-.1-.1-.5-1.3-.7-1.8s-.4-.4-.5-.4h-.5a.9.9 0 0 0-.6.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11.2 11.2 0 0 0 4.4 3.9c.6.3 1.1.4 1.5.5a3.6 3.6 0 0 0 1.6.1 2.7 2.7 0 0 0 1.7-1.2 2.2 2.2 0 0 0 .1-1.2c0-.1-.2-.2-.4-.3Z"/></svg>
 </a>
 
-<div id="carrinho-overlay" onclick="toggleCarrinho()" class="fixed inset-0 bg-black/60 z-50 hidden backdrop-blur-sm transition-opacity duration-300"></div>
+<div id="carrinho-overlay" class="fixed inset-0 bg-black/60 z-50 hidden backdrop-blur-sm transition-opacity duration-300"></div>
 
 <aside id="carrinho-drawer" class="fixed top-0 right-0 h-full w-full max-w-md z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between surface border-l">
     <div class="p-6 border-b border-theme flex items-center justify-between">
         <h2 class="text-base font-extrabold uppercase tracking-wider">Seu Carrinho</h2>
-        <button onclick="toggleCarrinho()" class="p-2 opacity-60 hover:opacity-100 text-lg font-bold">✕</button>
+        <button id="btn-fechar-carrinho" class="p-2 opacity-60 hover:opacity-100 text-lg font-bold">✕</button>
     </div>
 
     <div id="itens-carrinho" class="p-6 overflow-y-auto flex-1 space-y-4"></div>
@@ -178,110 +181,64 @@
 </footer>
 
 <script>
-const variacoesPorProduto = {
-    {% for produto in produtos %}
-        {% if produto.variacoes.exists %}
-            '{{ produto.id }}': [
-                {% for v in produto.variacoes.all %}
-                    { tamanho: "{{ v.tamanho|default:''|escapejs }}", cor: "{{ v.cor|default:''|escapejs }}" },
-                {% endfor %}
-            ],
-        {% endif %}
-    {% endfor %}
-};
+var carrinho = [];
 
-let carrinho = [];
-
-function filtrarCategoria(categoriaId, elementoBotao) {
-    const produtos = document.querySelectorAll('.card-produto');
-    const botoes = document.querySelectorAll('.btn-categoria');
-
-    botoes.forEach(btn => {
-        btn.classList.remove('active-cat', 'btn-primary');
-        btn.style.borderColor = '';
-        btn.classList.add('opacity-60', 'border-transparent');
-    });
-
-    elementoBotao.classList.add('active-cat', 'btn-primary');
-    elementoBotao.style.borderColor = 'var(--primary)';
-    elementoBotao.classList.remove('opacity-60', 'border-transparent');
-
-    produtos.forEach(prod => {
-        if (categoriaId === 'todas' || prod.getAttribute('data-categoria') === categoriaId) {
-            prod.style.display = 'flex';
-        } else {
-            prod.style.display = 'none';
+function atualizarPreco(produtoId) {
+    var precoSpan = document.querySelector('.preco-produto[data-produto-id="' + produtoId + '"]');
+    if (!precoSpan) return;
+    var precoBase = parseFloat(precoSpan.dataset.base) || 0;
+    var adicional = 0;
+    var selects = document.querySelectorAll('.select-variacao[data-produto-id="' + produtoId + '"]');
+    selects.forEach(function(sel) {
+        var opt = sel.options[sel.selectedIndex];
+        if (opt && opt.dataset.preco) {
+            adicional += parseFloat(opt.dataset.preco) || 0;
         }
     });
+    precoSpan.textContent = 'R$ ' + (precoBase + adicional).toFixed(2);
 }
 
-function inicializarVariacoes(produtoId) {
-    const listaVariacoes = variacoesPorProduto[produtoId];
-    if (!listaVariacoes) return;
-
-    const selectTamanho = document.getElementById(`tamanho-${produtoId}`);
-    const wrapperTamanho = document.getElementById(`wrapper-tamanho-${produtoId}`);
-    const tamanhosUnicos = [...new Set(listaVariacoes.map(v => v.tamanho).filter(Boolean))];
-
-    if (selectTamanho) {
-        selectTamanho.innerHTML = '';
-        if (tamanhosUnicos.length === 0) {
-            if (wrapperTamanho) wrapperTamanho.style.display = 'none';
-        } else {
-            tamanhosUnicos.forEach(tam => selectTamanho.add(new Option(tam, tam)));
+function obterDescricaoVariacao(produtoId) {
+    var partes = [];
+    var selects = document.querySelectorAll('.select-variacao[data-produto-id="' + produtoId + '"]');
+    selects.forEach(function(sel) {
+        var opt = sel.options[sel.selectedIndex];
+        if (opt && opt.value) {
+            var label = sel.parentElement.querySelector('label');
+            var nomeTipo = label ? label.textContent.replace(':', '').trim() : '';
+            partes.push(nomeTipo + ': ' + opt.value);
         }
-    }
-    aoMudarTamanho(produtoId);
+    });
+    return partes.join(', ');
 }
 
-function aoMudarTamanho(produtoId) {
-    const listaVariacoes = variacoesPorProduto[produtoId];
-    if (!listaVariacoes) return;
-
-    const selectTamanho = document.getElementById(`tamanho-${produtoId}`);
-    const selectCor = document.getElementById(`cor-${produtoId}`);
-    const wrapperCor = document.getElementById(`wrapper-cor-${produtoId}`);
-    const tamanhoSelecionado = selectTamanho ? selectTamanho.value : '';
-
-    const coresDisponiveis = [...new Set(
-        listaVariacoes
-            .filter(v => !tamanhoSelecionado || v.tamanho === tamanhoSelecionado)
-            .map(v => v.cor)
-            .filter(Boolean)
-    )];
-
-    if (selectCor) {
-        selectCor.innerHTML = '';
-        if (coresDisponiveis.length === 0) {
-            if (wrapperCor) wrapperCor.style.display = 'none';
-        } else {
-            if (wrapperCor) wrapperCor.style.display = 'block';
-            coresDisponiveis.forEach(cor => selectCor.add(new Option(cor, cor)));
-        }
-    }
+function obterChaveVariacao(produtoId) {
+    var valores = [];
+    var selects = document.querySelectorAll('.select-variacao[data-produto-id="' + produtoId + '"]');
+    selects.forEach(function(sel) {
+        valores.push(sel.value || '');
+    });
+    return valores.join('|');
 }
 
 function toggleCarrinho() {
-    const drawer = document.getElementById('carrinho-drawer');
-    const overlay = document.getElementById('carrinho-overlay');
+    var drawer = document.getElementById('carrinho-drawer');
+    var overlay = document.getElementById('carrinho-overlay');
     drawer.classList.toggle('translate-x-full');
     overlay.classList.toggle('hidden');
 }
 
-function adicionarAoCarrinho(produtoId, nomeProduto, preco) {
-    const selectTamanho = document.getElementById(`tamanho-${produtoId}`);
-    const selectCor = document.getElementById(`cor-${produtoId}`);
+function adicionarAoCarrinho(produtoId, nomeProduto) {
+    var precoSpan = document.querySelector('.preco-produto[data-produto-id="' + produtoId + '"]');
+    var precoTotal = precoSpan ? parseFloat(precoSpan.textContent.replace('R$ ', '').replace(',', '.')) || 0 : 0;
+    var descricao = obterDescricaoVariacao(produtoId);
+    var chave = produtoId + '-' + obterChaveVariacao(produtoId);
+    var exists = carrinho.find(function(i) { return i.chave === chave; });
 
-    const tamanho = (selectTamanho && selectTamanho.parentElement.style.display !== 'none') ? selectTamanho.value : '';
-    const cor = (selectCor && selectCor.parentElement.style.display !== 'none') ? selectCor.value : '';
-
-    const itemChave = `${produtoId}-${tamanho}-${cor}`;
-    const itemExistente = carrinho.find(i => i.chave === itemChave);
-
-    if (itemExistente) {
-        itemExistente.quantidade += 1;
+    if (exists) {
+        exists.quantidade += 1;
     } else {
-        carrinho.push({ chave: itemChave, id: produtoId, nome: nomeProduto, preco: parseFloat(preco), tamanho, cor, quantidade: 1 });
+        carrinho.push({ chave: chave, id: produtoId, nome: nomeProduto, preco: precoTotal, descricao: descricao, quantidade: 1 });
     }
 
     atualizarCarrinhoUI();
@@ -289,53 +246,46 @@ function adicionarAoCarrinho(produtoId, nomeProduto, preco) {
 }
 
 function alterarQuantidade(chave, delta) {
-    const item = carrinho.find(i => i.chave === chave);
+    var item = carrinho.find(function(i) { return i.chave === chave; });
     if (!item) return;
     item.quantidade += delta;
-    if (item.quantidade <= 0) carrinho = carrinho.filter(i => i.chave !== chave);
+    if (item.quantidade <= 0) carrinho = carrinho.filter(function(i) { return i.chave !== chave; });
     atualizarCarrinhoUI();
 }
 
 function atualizarCarrinhoUI() {
-    const container = document.getElementById('itens-carrinho');
-    const badge = document.getElementById('badge-carrinho');
-    const totalEl = document.getElementById('total-carrinho');
-
-    let totalItens = 0;
-    let valorTotal = 0;
+    var container = document.getElementById('itens-carrinho');
+    var badge = document.getElementById('badge-carrinho');
+    var totalEl = document.getElementById('total-carrinho');
+    var totalItens = 0;
+    var valorTotal = 0;
     container.innerHTML = '';
 
     if (carrinho.length === 0) {
-        container.innerHTML = `<p class="text-center text-xs uppercase tracking-widest text-muted py-10">Carrinho vazio</p>`;
+        container.innerHTML = '<p class="text-center text-xs uppercase tracking-widest text-muted py-10">Carrinho vazio</p>';
     } else {
-        carrinho.forEach(item => {
+        carrinho.forEach(function(item) {
             totalItens += item.quantidade;
             valorTotal += item.preco * item.quantidade;
-
-            let detalhe = '';
-            if (item.tamanho || item.cor) {
-                detalhe = `<span class="text-[10px] text-muted block">${item.tamanho ? 'Tam: ' + item.tamanho : ''} ${item.cor ? 'Cor: ' + item.cor : ''}</span>`;
-            }
-
-            container.innerHTML += `
-                <div class="flex items-center justify-between border-b border-theme pb-4">
-                    <div>
-                        <h4 class="text-xs font-bold uppercase">${item.nome}</h4>
-                        ${detalhe}
-                        <span class="text-xs font-extrabold mt-1 block">R$ ${item.preco.toFixed(2)}</span>
-                    </div>
-                    <div class="flex items-center border border-theme rounded-lg overflow-hidden">
-                        <button onclick="alterarQuantidade('${item.chave}', -1)" class="px-2 py-1 text-xs font-bold hover:opacity-70">-</button>
-                        <span class="px-3 text-xs font-bold">${item.quantidade}</span>
-                        <button onclick="alterarQuantidade('${item.chave}', 1)" class="px-2 py-1 text-xs font-bold hover:opacity-70">+</button>
-                    </div>
-                </div>
-            `;
+            var detalhe = item.descricao ? '<span class="text-[10px] text-muted block">' + item.descricao + '</span>' : '';
+            container.innerHTML +=
+                '<div class="flex items-center justify-between border-b border-theme pb-4">' +
+                    '<div>' +
+                        '<h4 class="text-xs font-bold uppercase">' + item.nome + '</h4>' +
+                        detalhe +
+                        '<span class="text-xs font-extrabold mt-1 block">R$ ' + item.preco.toFixed(2) + '</span>' +
+                    '</div>' +
+                    '<div class="flex items-center border border-theme rounded-lg overflow-hidden">' +
+                        '<button class="qtd-btn px-2 py-1 text-xs font-bold hover:opacity-70" data-chave="' + item.chave + '" data-delta="-1">-</button>' +
+                        '<span class="px-3 text-xs font-bold">' + item.quantidade + '</span>' +
+                        '<button class="qtd-btn px-2 py-1 text-xs font-bold hover:opacity-70" data-chave="' + item.chave + '" data-delta="1">+</button>' +
+                    '</div>' +
+                '</div>';
         });
     }
 
     badge.innerText = totalItens;
-    totalEl.innerText = `R$ ${valorTotal.toFixed(2)}`;
+    totalEl.innerText = 'R$ ' + valorTotal.toFixed(2);
 }
 
 function enviarPedidoWhatsapp(whatsapp) {
@@ -343,29 +293,52 @@ function enviarPedidoWhatsapp(whatsapp) {
         alert('Seu carrinho está vazio!');
         return;
     }
-
-    let mensagem = `*NOVO PEDIDO DE COMPRA*\n\n`;
-    let total = 0;
-
-    carrinho.forEach((item, index) => {
-        const subtotal = item.preco * item.quantidade;
-        total += subtotal;
-        mensagem += `${index + 1}. *${item.nome}*\n`;
-        if (item.tamanho) mensagem += `   - Tamanho: ${item.tamanho}\n`;
-        if (item.cor) mensagem += `   - Cor: ${item.cor}\n`;
-        mensagem += `   - Qtd: ${item.quantidade}x (R$ ${item.preco.toFixed(2)})\n\n`;
+    var msg = '*NOVO PEDIDO DE COMPRA*\n\n';
+    var total = 0;
+    carrinho.forEach(function(item, idx) {
+        var sub = item.preco * item.quantidade;
+        total += sub;
+        msg += (idx + 1) + '. *' + item.nome + '*\n';
+        if (item.descricao) msg += '   - ' + item.descricao + '\n';
+        msg += '   - Qtd: ' + item.quantidade + 'x (R$ ' + item.preco.toFixed(2) + ')\n\n';
     });
-
-    mensagem += `*TOTAL DO PEDIDO: R$ ${total.toFixed(2)}*`;
-    window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(mensagem)}`, '_blank');
+    msg += '*TOTAL DO PEDIDO: R$ ' + total.toFixed(2) + '*';
+    window.open('https://wa.me/' + whatsapp + '?text=' + encodeURIComponent(msg), '_blank');
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    {% for produto in produtos %}
-        {% if produto.variacoes.exists %}
-            inicializarVariacoes('{{ produto.id }}');
-        {% endif %}
-    {% endfor %}
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn-categoria').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var cat = this.dataset.categoria;
+            document.querySelectorAll('.btn-categoria').forEach(function(b) {
+                b.classList.remove('active-cat', 'btn-primary');
+                b.style.borderColor = '';
+                b.classList.add('opacity-60', 'border-transparent');
+            });
+            this.classList.add('active-cat', 'btn-primary');
+            this.style.borderColor = 'var(--primary)';
+            this.classList.remove('opacity-60', 'border-transparent');
+            document.querySelectorAll('.card-produto').forEach(function(p) {
+                p.style.display = (cat === 'todas' || p.dataset.categoria === cat) ? 'flex' : 'none';
+            });
+        });
+    });
+
+    document.querySelectorAll('.btn-add-carrinho').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            adicionarAoCarrinho(this.dataset.produtoId, this.dataset.produtoNome);
+        });
+    });
+
+    document.getElementById('btn-toggle-carrinho').addEventListener('click', toggleCarrinho);
+    document.getElementById('btn-fechar-carrinho').addEventListener('click', toggleCarrinho);
+    document.getElementById('carrinho-overlay').addEventListener('click', toggleCarrinho);
+
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('qtd-btn')) {
+            alterarQuantidade(e.target.dataset.chave, parseInt(e.target.dataset.delta));
+        }
+    });
 });
 </script>
 </body>
