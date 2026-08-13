@@ -30,3 +30,6 @@ plataforma/static/plataforma/img/calendarwsf.png
 .env
 
 *.csv
+
+public_key.pem
+private_key.pem

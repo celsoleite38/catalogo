@@ -112,6 +112,40 @@ class VariacaoProduto(models.Model):
     def __str__(self):
         return f"{self.produto.nome} - {self.tipo.nome}: {self.valor}"
 
+class PushSubscription(models.Model):
+    """
+    Armazena a inscrição de push de um visitante para uma Loja específica.
+    Um mesmo dispositivo pode ter subscriptions diferentes para lojas diferentes,
+    pois o Service Worker é escopado por loja.
+    """
+    lojista = models.ForeignKey(
+        'Lojista',
+        on_delete=models.CASCADE,
+        related_name='push_subscriptions'
+    )
+    endpoint = models.URLField(max_length=500, unique=True)
+    p256dh = models.CharField(max_length=255)
+    auth = models.CharField(max_length=255)
+    user_agent = models.CharField(max_length=255, blank=True, null=True)
+    criado_em = models.DateTimeField(auto_now_add=True)
+    ativo = models.BooleanField(default=True)
 
+    class Meta:
+        verbose_name = "Inscrição Push"
+        verbose_name_plural = "Inscrições Push"
+        indexes = [
+            models.Index(fields=['lojista', 'ativo']),
+        ]
 
+    def __str__(self):
+        return f"Push - {self.lojista.nome_loja} - {self.endpoint[:40]}..."
 
+    def to_subscription_info(self):
+        """Formato exigido pelo pywebpush."""
+        return {
+            "endpoint": self.endpoint,
+            "keys": {
+                "p256dh": self.p256dh,
+                "auth": self.auth
+            }
+        }

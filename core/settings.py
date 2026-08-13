@@ -1,8 +1,15 @@
 from pathlib import Path
 from django.urls import reverse_lazy
+import os
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+VAPID_PRIVATE_KEY_PATH = str(BASE_DIR / 'private_key.pem')
+VAPID_CLAIMS = {
+    "sub": config('VAPID_CLAIMS_EMAIL')
+}
 
 
 # Quick-start development settings - unsuitable for production
@@ -106,6 +113,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 
 import os
 MEDIA_URL = '/media/'

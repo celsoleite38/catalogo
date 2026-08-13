@@ -287,6 +287,48 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(event.request))
   );
 });
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch (e) {
+    payload = { title: 'Catálogo', body: event.data.text() };
+  }
+
+  const options = {
+    body: payload.body || '',
+    icon: payload.icon || '/static/catalogo/icons/icon-192.png',
+    badge: payload.badge || '/static/catalogo/icons/icon-96.png',
+    data: { url: payload.url || '/' },
+    tag: payload.tag || 'catalogo-produto',
+    renotify: true,
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title || 'Novidade no catálogo', options)
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data && event.notification.data.url ? event.notification.data.url : '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if (client.url === url && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(url);
+      }
+    })
+  );
+});
 """
     resposta = HttpResponse(js, content_type="application/javascript")
     resposta["Service-Worker-Allowed"] = "/"

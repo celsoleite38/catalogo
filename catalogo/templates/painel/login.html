@@ -1,31 +1,146 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Painel do Lojista</title>
+    <title>Login - Catálogo Digital</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen p-4">
-    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-sm">
-        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Área do Lojista</h2>
-        
-        <form method="post" action="{% url 'catalogo:login' %}">
-            {% csrf_token %}
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2">Usuário</label>
-                <input type="text" name="username" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500" required>
+
+<body class="bg-green-50 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-5xl bg-white rounded-2xl shadow-md overflow-hidden grid grid-cols-1 md:grid-cols-2">
+
+        <!-- Coluna esquerda: apresentação + exemplos de catálogos -->
+        <div class="bg-green-100 p-8 md:p-10 flex flex-col justify-center border-b md:border-b-0 md:border-r border-green-100">
+
+            <div class="flex items-center gap-2 mb-6">
+                <!-- Container da Imagem com Efeitos -->
+                <div class="relative w-[112px] h-[112px] rounded-2xl p-0 shadow-lg bg-gradient-to-br  to-teal-600 flex items-center justify-center overflow-hidden">
+                    <!-- A Imagem -->
+                    <img src="{% static 'img/innoshow.png' %}" 
+                        alt="Logo Innosoft" 
+                        width="99" 
+                        class="relative z-10 w-full h-full object-contain rounded-xl">
+                    
+                    <!-- Camada de sobreposição sutil (Opcional, melhora o contraste) -->
+                    <div class="absolute inset-0 bg-black/5 opacity-40"></div>
+                </div>
+
+                <!-- Texto ao Lado (Ajustado o padding para alinhar) -->
+                <span class="font-semibold text-green-900 text-sm ml-1" style="font-size: 26px;">Catálogo Digital <br><br> InnoSoft</span>
             </div>
-            
-            <div class="mb-6">
-                <label class="block text-gray-700 text-sm font-bold mb-2">Senha</label>
-                <input type="password" name="password" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500" required>
+
+            <h1 class="text-2xl md:text-3xl font-bold text-green-900 mb-2 leading-snug">
+                Sua vitrine online em minutos
+            </h1>
+            <p class="text-green-800/80 text-sm mb-8 max-w-sm">
+                Pedidos via WhatsApp, app instalável e temas prontos para o seu negócio — sem mensalidade de plataforma.
+            </p>
+
+            <p class="text-xs font-semibold text-green-800/70 mb-3 uppercase tracking-wide">
+                Catálogos que já criamos
+            </p>
+
+            <div class="flex flex-col gap-3">
+
+                <!-- Card 1 -->
+                <div class="rounded-xl overflow-hidden border border-green-100 bg-white flex items-center gap-3 p-2">
+                    <!-- Container da imagem -->
+                    <div class="w-32 h-32 rounded-lg flex-shrink-0 bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center overflow-hidden relative group">
+                        <img src="{% static 'img/exemplos/acai.png' %}" class="w-full h-full object-cover rounded-lg">
+                    </div>
+
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-green-900 truncate">Açai Saúde</p>
+                        <p class="text-xs text-green-800/60 truncate">Tema mint fresh</p>
+                        <a href="https://catalogo.clubeorange.com.br/acai-saude" 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            class="inline-flex items-center justify-center gap-2 px-2 py-1 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-lg shadow-sm hover:shadow transition-all duration-200 group">
+                                <span>Acessar</span>
+                                
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="rounded-xl overflow-hidden border border-green-100 bg-white flex items-center gap-3 p-2">
+                    <!-- Container da imagem -->
+                    <div class="w-32 h-32 rounded-lg flex-shrink-0 bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center overflow-hidden relative group">
+                        <img src="{% static 'img/exemplos/pizza.png' %}" class="w-full h-full object-cover rounded-lg">
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-green-900 truncate">Pizzaria Bella Napoli</p>
+                        <p class="text-xs text-green-800/60 truncate">Tema warm sunset</p>
+                        <a href="https://catalogo.clubeorange.com.br/pizzaria-bella-napoli" 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            class="inline-flex items-center justify-center gap-2 px-2 py-1 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-lg shadow-sm hover:shadow transition-all duration-200 group">
+                                <span>Acessar</span>
+                                
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                </svg>
+                        </a>
+                    </div>
+                    
+                </div>
+
+                <!-- Card 3 -->
+                <div class="rounded-xl overflow-hidden border border-green-100 bg-white flex items-center gap-3 p-2">
+                    <!-- Container da imagem -->
+                    <div class="w-32 h-32 rounded-lg flex-shrink-0 bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center overflow-hidden relative group">
+                        <img src="{% static 'img/exemplos/tec.png' %}" class="w-full h-full object-cover rounded-lg">
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-green-900 truncate">TecnoFit Gear</p>
+                        <p class="text-xs text-green-800/60 truncate">Tema sport fire</p>
+                        <a href="https://catalogo.clubeorange.com.br/tecnofit-gear" 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            class="inline-flex items-center justify-center gap-2 px-2 py-1 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-lg shadow-sm hover:shadow transition-all duration-200 group">
+                                <span>Acessar</span>
+                                
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                </svg>
+                        </a>
+                    </div>
+                </div>
+
             </div>
-            
-            <button type="submit" class="w-full bg-green-500 text-white font-bold py-2 rounded hover:bg-green-600 transition">
-                Entrar
-            </button>
-        </form>
+        </div>
+
+        <!-- Coluna direita: formulário de login (lógica original preservada) -->
+        <div class="p-8 md:p-10 flex flex-col justify-center">
+            <h2 class="text-xl font-bold mb-1 text-gray-800">Área do lojista</h2>
+            <p class="text-sm text-gray-500 mb-6">Acesse o painel da sua loja.</p>
+
+            <form method="post" action="{% url 'catalogo:login' %}">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-semibold mb-2">Usuário</label>
+                    <input type="text" name="username" class="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-semibold mb-2">Senha</label>
+                    <input type="password" name="password" class="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                </div>
+
+                <button type="submit" class="w-full bg-green-700 text-white font-semibold py-2.5 rounded-lg hover:bg-green-800 transition">
+                    Entrar
+                </button>
+            </form>
+
+            <p class="text-center text-xs text-gray-400 mt-6">
+                Ainda não tem uma loja? <a href="https://wa.me/5535988599032" class="text-green-700 font-medium hover:underline">Fale conosco</a>
+            </p>
+        </div>
+
     </div>
+
 </body>
 </html>

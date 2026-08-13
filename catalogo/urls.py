@@ -1,7 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
-from . import views
+from . import views, views_push
 
 app_name = 'catalogo'
 
@@ -40,4 +40,9 @@ urlpatterns = [
 
     # Catálogo público (Mantenha no final das rotas)
     path('<slug:slug>/', views.ver_catalogo, name='catalogo'),
+
+    # Rotas para Push Notifications
+    path('<slug:slug>/push/vapid-public-key/', views_push.vapid_public_key, name='push_vapid_key'),
+    path('<slug:slug>/push/subscribe/', views_push.push_subscribe, name='push_subscribe'),
+    path('<slug:slug>/push/unsubscribe/', views_push.push_unsubscribe, name='push_unsubscribe'),
 ]

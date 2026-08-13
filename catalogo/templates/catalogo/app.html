@@ -1,3 +1,4 @@
+{% load static %}
 {% load l10n %}
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -52,6 +53,9 @@
     <div class="relative z-10">
         <h1 class="mt-4 text-2xl font-extrabold tracking-tight uppercase" style="color: var(--on-primary);">{{ lojista.nome_loja }}</h1>
         <p class="text-xs font-medium tracking-wider uppercase mt-1 opacity-80" style="color: var(--on-primary);">Catálogo Oficial</p>
+        <button id="btn-notificacoes" onclick="ativarNotificacoes('{{ lojista.slug }}')">
+        🔔 Ativar notificações
+        </button>
     </div>
 </div>
 
@@ -193,6 +197,8 @@
     </a>
     <p>Catálogo digital by <a href="https://innosoft.com.br" target="_blank" class="underline">Innosoft</a></p>
 </footer>
+
+<script src="{% static 'catalogo/js/push-notifications.js' %}"></script>
 
 <script>
 var carrinho = [];
