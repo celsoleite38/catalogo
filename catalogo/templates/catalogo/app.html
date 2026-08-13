@@ -22,6 +22,41 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <style>
+    .notif-btn {
+        background: rgba(255, 255, 255, 0.15);
+        color: var(--on-primary);
+        border: 1.5px solid rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(6px);
+        position: relative;
+        }
+
+        .notif-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        }
+
+        .notif-btn .notif-bell {
+        display: inline-block;
+        animation: sino-balanca 2.5s ease-in-out infinite;
+        }
+
+        @keyframes sino-balanca {
+        0%, 70%, 100% { transform: rotate(0deg); }
+        75% { transform: rotate(-12deg); }
+        80% { transform: rotate(10deg); }
+        85% { transform: rotate(-8deg); }
+        90% { transform: rotate(6deg); }
+        95% { transform: rotate(0deg); }
+        }
+
+        .notif-btn.ativado {
+        background: rgba(195, 223, 160, 0.95);
+        color: #032905;);
+        border-color: transparent;
+        }
+
+        .notif-btn.ativado .notif-bell {
+        animation: none;
+        }
   :root {
     --bg: {{ tema.bg }};
     --surface: {{ tema.surface }};
@@ -53,9 +88,11 @@
     <div class="relative z-10">
         <h1 class="mt-4 text-2xl font-extrabold tracking-tight uppercase" style="color: var(--on-primary);">{{ lojista.nome_loja }}</h1>
         <p class="text-xs font-medium tracking-wider uppercase mt-1 opacity-80" style="color: var(--on-primary);">Catálogo Oficial</p>
-        <button id="btn-notificacoes" onclick="ativarNotificacoes('{{ lojista.slug }}')">
-        🔔 Ativar notificações
-        </button>
+        <button id="btn-notificacoes" onclick="ativarNotificacoes('{{ lojista.slug }}')"
+            class="notif-btn mt-3 inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg transition-all duration-300 hover:scale-105">
+        <span class="notif-bell text-base">🔔</span>
+        <span class="notif-label">Ativar notificações</span>
+    </button>
     </div>
 </div>
 
@@ -327,6 +364,7 @@ function enviarPedidoWhatsapp(whatsapp) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    atualizarEstadoBotaoNotificacao('{{ lojista.slug }}');
     document.querySelectorAll('.btn-categoria').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var cat = this.dataset.categoria;
@@ -366,6 +404,24 @@ document.addEventListener('DOMContentLoaded', function() {
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js', { scope: '/{{ lojista.slug }}/' })
         .catch(function(erro) { console.warn('Service worker não registrado:', erro); });
+}
+function atualizarEstadoBotaoNotificacao(slug) {
+  const btn = document.getElementById('btn-notificacoes');
+  if (!btn) return;
+
+  const label = btn.querySelector('.notif-label');
+  const bell = btn.querySelector('.notif-bell');
+  const ativado = localStorage.getItem(`push-ativado-${slug}`) === '1';
+
+  if (ativado) {
+    btn.classList.add('ativado');
+    if (label) label.textContent = 'Notificações ativadas';
+    if (bell) bell.textContent = '✅';
+  } else {
+    btn.classList.remove('ativado');
+    if (label) label.textContent = 'Ativar notificações';
+    if (bell) bell.textContent = '🔔';
+  }
 }
 </script>
 </body>

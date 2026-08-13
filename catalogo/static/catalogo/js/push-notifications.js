@@ -38,6 +38,7 @@ async function ativarNotificacoes(slug) {
   });
 
   localStorage.setItem(`push-ativado-${slug}`, '1');
+  atualizarEstadoBotaoNotificacao(slug);
   alert('Notificações ativadas!');
   return true;
 }
