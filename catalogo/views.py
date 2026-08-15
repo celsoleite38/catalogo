@@ -339,7 +339,7 @@ self.addEventListener('notificationclick', (event) => {
 def instalar_app(request, slug):
     """Página que o lojista manda pro cliente final instalar o catálogo
     como app na tela inicial do celular (Android e iPhone)."""
-    lojista = get_object_or_404(Lojista, slug=slug, ativo=True)
+    lojista = get_object_or_404(Lojista, slug=slug, ativo=True, link_app_habilitado=True)
     tema = get_tema(lojista.tema)
     return render(request, 'catalogo/instalar.html', {'lojista': lojista, 'tema': tema})
 

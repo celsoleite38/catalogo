@@ -19,7 +19,7 @@ def push_subscribe(request, slug):
     Recebe a subscription gerada pelo pushManager.subscribe() no navegador
     e salva vinculada ao Lojista identificado pelo slug da URL.
     """
-    lojista = get_object_or_404(Lojista, slug=slug, ativo=True)
+    lojista = get_object_or_404(Lojista, slug=slug, ativo=True, notificacoes_habilitadas=True)
 
     try:
         data = json.loads(request.body)

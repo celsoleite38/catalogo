@@ -11,9 +11,15 @@ class CategoriaInline(admin.TabularInline):
 
 @admin.register(Lojista)
 class LojistaAdmin(admin.ModelAdmin):
-    list_display = ('nome_loja', 'slug', 'whatsapp', 'user')
+    list_display = ('nome_loja', 'slug', 'whatsapp', 'user', 'notificacoes_habilitadas', 'link_app_habilitado')
+    list_filter = ('notificacoes_habilitadas', 'link_app_habilitado')
     prepopulated_fields = {'slug': ('nome_loja',)}
     inlines = [CategoriaInline]
+
+    def get_readonly_fields(self, request, obj=None):
+        if request.user.is_superuser:
+            return ()
+        return ('notificacoes_habilitadas', 'link_app_habilitado')
 
 @admin.register(TipoVariacao)
 class TipoVariacaoAdmin(admin.ModelAdmin):

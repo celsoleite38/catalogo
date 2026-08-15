@@ -29,6 +29,8 @@ class Lojista(models.Model):
     whatsapp = models.CharField(max_length=20)
     tema = models.CharField(max_length=30, choices=TEMAS_CHOICES, default='minimal_nordic')
     ativo = models.BooleanField(default=True)
+    notificacoes_habilitadas = models.BooleanField(default=True, verbose_name='Ativar notificações')
+    link_app_habilitado = models.BooleanField(default=True, verbose_name='Link de instalação do app (PWA)')
 
     def __str__(self):
         return self.nome_loja

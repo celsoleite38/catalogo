@@ -53,6 +53,7 @@
         </div>
 
         <!-- Divulgar o Catálogo como App -->
+        {% if lojista.link_app_habilitado %}
         <div class="rounded-lg shadow-sm border border-gray-100 p-6 mb-6" style="background: linear-gradient(135deg, #111827, #1f2937);">
             <h2 class="text-white font-bold text-sm uppercase tracking-wide mb-1">📲 Divulgue seu catálogo como app</h2>
             <p class="text-gray-400 text-xs mb-4">Manda esse link pros seus clientes no WhatsApp ou nos stories. Eles clicam e instalam o catálogo na tela do celular, com sua marca.</p>
@@ -69,6 +70,7 @@
                 </a>
             </div>
         </div>
+        {% endif %}
 
         <!-- Indicadores -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -325,6 +327,7 @@
 
         function copiarLinkInstalar() {
             const input = document.getElementById('link-instalar');
+            if (!input) return;
             input.select();
             navigator.clipboard.writeText(input.value).then(() => {
                 const btn = document.getElementById('btn-copiar');
@@ -335,10 +338,13 @@
         }
 
         (function montarLinkWhatsappDivulgacao() {
-            const link = document.getElementById('link-instalar').value;
+            const input = document.getElementById('link-instalar');
+            const btnWhatsapp = document.getElementById('link-whatsapp-divulgar');
+            if (!input || !btnWhatsapp) return;
+            const link = input.value;
             const nomeLoja = '{{ lojista.nome_loja|default:"Loja"|escapejs }}';
             const mensagem = `Oi! Agora é só clicar aqui pra ver e instalar o catálogo da ${nomeLoja} no seu celular: ${link}`;
-            document.getElementById('link-whatsapp-divulgar').href = 'https://wa.me/?text=' + encodeURIComponent(mensagem);
+            btnWhatsapp.href = 'https://wa.me/?text=' + encodeURIComponent(mensagem);
         })();
     </script>
 </body>

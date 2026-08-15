@@ -88,11 +88,13 @@
     <div class="relative z-10">
         <h1 class="mt-4 text-2xl font-extrabold tracking-tight uppercase" style="color: var(--on-primary);">{{ lojista.nome_loja }}</h1>
         <p class="text-xs font-medium tracking-wider uppercase mt-1 opacity-80" style="color: var(--on-primary);">Catálogo Oficial</p>
+        {% if lojista.notificacoes_habilitadas %}
         <button id="btn-notificacoes" onclick="ativarNotificacoes('{{ lojista.slug }}')"
             class="notif-btn mt-3 inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg transition-all duration-300 hover:scale-105">
         <span class="notif-bell text-base">🔔</span>
         <span class="notif-label">Ativar notificações</span>
     </button>
+        {% endif %}
     </div>
 </div>
 
@@ -228,10 +230,12 @@
 </aside>
 
 <footer class="text-center text-[10px] uppercase tracking-widest text-muted py-6 space-y-2">
+    {% if lojista.link_app_habilitado %}
     <a href="{% url 'catalogo:instalar_app' lojista.slug %}" class="btn-primary inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold normal-case tracking-normal text-xs no-underline">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" /></svg>
         Instalar este catálogo no celular
     </a>
+    {% endif %}
     <p>Catálogo digital by <a href="https://innosoft.com.br" target="_blank" class="underline">Innosoft</a></p>
 </footer>
 
