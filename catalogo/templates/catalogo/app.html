@@ -17,7 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="{{ lojista.nome_loja }}">
 <meta name="mobile-web-app-capable" content="yes">
 
-<link rel="stylesheet" href="{% static 'catalogo/css/app.css' %}">
+<link rel="stylesheet" href="{% static 'catalogo/css/app.css' %}?v=2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
@@ -88,10 +88,12 @@
     <div class="relative z-10">
         {% if lojista.logo %}
         <img src="{{ lojista.logo.url }}" alt="{{ lojista.nome_loja }}"
-            class="w-20 h-20 mx-auto rounded-full object-cover  "
-            style="border-color: var(--on-primary);">
+            class="w-20 h-20 mx-auto rounded-full object-cover">
         {% else %}
-        
+        <div class="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-2xl font-extrabold"
+            style="background: var(--primary); color: var(--on-primary);">
+            {{ lojista.nome_loja|slice:":1"|upper }}
+        </div>
         {% endif %}
         <h1 class="mt-4 text-2xl font-extrabold tracking-tight uppercase" style="color: var(--on-primary);">{{ lojista.nome_loja }}</h1>
         <p class="text-xs font-medium tracking-wider uppercase mt-1 opacity-80" style="color: var(--on-primary);">Catálogo Oficial</p>
