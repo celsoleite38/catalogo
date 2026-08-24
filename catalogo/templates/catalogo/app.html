@@ -10,8 +10,8 @@
 
 <!-- PWA: cada loja é um app instalável próprio -->
 <link rel="manifest" href="{% url 'catalogo:manifest' lojista.slug %}">
-<link rel="icon" href="{% url 'catalogo:pwa_icon' lojista.slug 192 %}">
-<link rel="apple-touch-icon" href="{% url 'catalogo:pwa_icon' lojista.slug 192 %}">
+<link rel="icon" href="{% url 'catalogo:pwa_icon' lojista.slug 192 %}{% if lojista.logo %}?v={{ lojista.logo.size }}{% endif %}">
+<link rel="apple-touch-icon" href="{% url 'catalogo:pwa_icon' lojista.slug 192 %}{% if lojista.logo %}?v={{ lojista.logo.size }}{% endif %}">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="{{ lojista.nome_loja }}">

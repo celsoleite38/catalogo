@@ -7,8 +7,8 @@
 <title>Instalar {{ lojista.nome_loja }}</title>
 <meta name="theme-color" content="{{ tema.bg }}">
 <link rel="manifest" href="{% url 'catalogo:manifest' lojista.slug %}">
-<link rel="icon" href="{% url 'catalogo:pwa_icon' lojista.slug 192 %}">
-<link rel="apple-touch-icon" href="{% url 'catalogo:pwa_icon' lojista.slug 192 %}">
+<link rel="icon" href="{% url 'catalogo:pwa_icon' lojista.slug 192 %}{% if lojista.logo %}?v={{ lojista.logo.size }}{% endif %}">
+<link rel="apple-touch-icon" href="{% url 'catalogo:pwa_icon' lojista.slug 192 %}{% if lojista.logo %}?v={{ lojista.logo.size }}{% endif %}">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -33,7 +33,7 @@
 <body class="min-h-screen antialiased">
 
 <div class="cover-gradient px-6 pt-14 pb-20 text-center">
-    <img src="{% url 'catalogo:pwa_icon' lojista.slug 192 %}" alt="{{ lojista.nome_loja }}"
+    <img src="{% url 'catalogo:pwa_icon' lojista.slug 192 %}{% if lojista.logo %}?v={{ lojista.logo.size }}{% endif %}" alt="{{ lojista.nome_loja }}"
          class="w-20 h-20 rounded-2xl mx-auto shadow-lg border-4 border-white/20">
     <h1 class="mt-4 text-xl font-extrabold uppercase tracking-tight" style="color: var(--on-primary);">{{ lojista.nome_loja }}</h1>
     <p class="text-xs font-medium tracking-wider uppercase mt-1 opacity-80" style="color: var(--on-primary);">Instale o catálogo no seu celular</p>

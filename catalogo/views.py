@@ -184,11 +184,22 @@ def ver_catalogo(request, slug):
     return render(request, 'catalogo/app.html', context)
 
 
+def _versao_icone(lojista):
+    """Query string para invalidar o cache do ícone quando a logo muda."""
+    if lojista.logo:
+        try:
+            return f"?v={lojista.logo.size}"
+        except Exception:
+            pass
+    return ""
+
+
 def manifest_json(request, slug):
     """Manifest do PWA de cada loja — cada lojista vira um 'app' instalável
     isolado (nome, cor e ícone próprios), com escopo restrito à sua URL."""
     lojista = get_object_or_404(Lojista, slug=slug, ativo=True)
     tema = get_tema(lojista.tema)
+    versao = _versao_icone(lojista)
     data = {
         "name": lojista.nome_loja,
         "short_name": lojista.nome_loja[:15],
@@ -201,13 +212,13 @@ def manifest_json(request, slug):
         "theme_color": tema["primaria"],
         "icons": [
             {
-                "src": reverse('catalogo:pwa_icon', args=[lojista.slug, 192]),
+                "src": reverse('catalogo:pwa_icon', args=[lojista.slug, 192]) + versao,
                 "sizes": "192x192",
                 "type": "image/png",
                 "purpose": "any maskable",
             },
             {
-                "src": reverse('catalogo:pwa_icon', args=[lojista.slug, 512]),
+                "src": reverse('catalogo:pwa_icon', args=[lojista.slug, 512]) + versao,
                 "sizes": "512x512",
                 "type": "image/png",
                 "purpose": "any maskable",
@@ -218,13 +229,31 @@ def manifest_json(request, slug):
 
 
 def pwa_icon(request, slug, tamanho):
-    """Gera o ícone do app na hora, com a cor e a inicial da loja — assim
-    todo lojista tem um PWA instalável sem precisar subir logo nenhuma."""
-    from PIL import Image, ImageDraw, ImageFont
+    """Gera o ícone do app na hora. Usa a logo enviada pelo lojista quando
+    houver (inteira, centralizada sobre a cor do tema); senão, desenha a
+    inicial da loja — assim todo lojista tem um PWA instalável mesmo sem logo."""
+    from PIL import Image, ImageDraw, ImageFont, ImageColor
 
     lojista = get_object_or_404(Lojista, slug=slug)
     tema = get_tema(lojista.tema)
     tamanho = max(48, min(tamanho, 512))
+
+    if lojista.logo:
+        try:
+            logo = Image.open(lojista.logo.path).convert("RGBA")
+            logo.thumbnail((tamanho, tamanho), Image.LANCZOS)
+            fundo = Image.new("RGB", (tamanho, tamanho),
+                              ImageColor.getrgb(tema["primaria"]))
+            fundo.paste(logo,
+                        ((tamanho - logo.width) // 2, (tamanho - logo.height) // 2),
+                        logo)
+            buffer = BytesIO()
+            fundo.save(buffer, format="PNG")
+            resposta = HttpResponse(buffer.getvalue(), content_type="image/png")
+            resposta["Cache-Control"] = "public, max-age=604800"
+            return resposta
+        except Exception:
+            pass  # logo corrompida/ilegível → cai no ícone de inicial abaixo
 
     img = Image.new("RGB", (tamanho, tamanho), tema["primaria"])
     draw = ImageDraw.Draw(img)
