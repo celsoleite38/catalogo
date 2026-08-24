@@ -28,6 +28,9 @@ class Lojista(models.Model):
     slug = models.SlugField(unique=True)
     whatsapp = models.CharField(max_length=20)
     tema = models.CharField(max_length=30, choices=TEMAS_CHOICES, default='minimal_nordic')
+    logo = models.ImageField(upload_to='logos_loja/', blank=True, null=True,
+                              verbose_name='Logo da loja',
+                              help_text='Usada no ícone do app instalável (PWA). Se vazia, uma inicial colorida é gerada automaticamente.')
     ativo = models.BooleanField(default=True)
     notificacoes_habilitadas = models.BooleanField(default=True, verbose_name='Ativar notificações')
     link_app_habilitado = models.BooleanField(default=True, verbose_name='Link de instalação do app (PWA)')

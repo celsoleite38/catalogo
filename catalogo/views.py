@@ -442,7 +442,7 @@ def configuracoes_lojista(request):
         return redirect('catalogo:painel_lojista')
 
     if request.method == 'POST':
-        form = ConfiguracaoLojistaForm(request.POST, instance=lojista)
+        form = ConfiguracaoLojistaForm(request.POST, request.FILES, instance=lojista)
         if form.is_valid():
             form.save()
             return redirect('catalogo:configuracoes_lojista')
