@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reenviar confirmação - Catálogo Digital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-green-50 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-md p-8">
+
+        <h2 class="text-xl font-bold mb-1 text-gray-800">Reenviar link de confirmação</h2>
+        <p class="text-sm text-gray-500 mb-6">Informe o email do cadastro para receber um novo link.</p>
+
+        {% if messages %}
+        <div class="mb-4 space-y-2">
+            {% for message in messages %}
+            <div class="px-4 py-3 rounded-lg text-sm font-semibold {% if message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-green-100 text-green-700 border border-green-200{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-gray-700 text-sm font-semibold mb-2">Email</label>
+                <input type="email" name="email" required class="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="voce@exemplo.com.br">
+            </div>
+            <button type="submit" class="w-full bg-green-700 text-white font-semibold py-2.5 rounded-lg hover:bg-green-800 transition">
+                Enviar link
+            </button>
+        </form>
+
+        <p class="text-center text-xs text-gray-400 mt-6">
+            Já confirmou? <a href="{% url 'catalogo:login' %}" class="text-green-700 font-medium hover:underline">Fazer login</a>
+        </p>
+    </div>
+
+</body>
+</html>

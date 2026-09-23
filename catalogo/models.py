@@ -27,6 +27,7 @@ class Lojista(models.Model):
     nome_loja = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
     whatsapp = models.CharField(max_length=20)
+    cnpj = models.CharField(max_length=18, blank=True, verbose_name='CNPJ')
     tema = models.CharField(max_length=30, choices=TEMAS_CHOICES, default='minimal_nordic')
     logo = models.ImageField(upload_to='logos_loja/', blank=True, null=True,
                               verbose_name='Logo da loja',

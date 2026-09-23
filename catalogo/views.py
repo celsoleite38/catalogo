@@ -31,6 +31,11 @@ def slug_unico(base_slug, instance=None):
 
 
 class LoginForm(AuthenticationForm):
+    error_messages = {
+        'invalid_login': 'Senha ou usuário incorreto. Verifique e tente novamente.',
+        'inactive': 'Conta inativa.',
+    }
+
     def clean(self):
         username = self.cleaned_data.get('username')
         password = self.cleaned_data.get('password')
@@ -43,7 +48,8 @@ class LoginForm(AuthenticationForm):
             else:
                 if not user.is_active:
                     raise forms.ValidationError(
-                        'Desativado contate o administrador.',
+                        'Conta não ativada. Verifique seu email e clique no link de confirmação '
+                        'ou <a href="/usuarios/reenviar/" class="underline">reenvie a ativação</a>.',
                         code='inactive',
                     )
                 self.user_cache = authenticate(self.request, username=username, password=password)
@@ -60,6 +66,8 @@ class LoginView(AuthLoginView):
     def get_success_url(self):
         if self.request.user.is_superuser:
             return reverse_lazy('catalogo:admin_painel')
+        if not self.request.user.lojas.exists():
+            return reverse_lazy('usuarios:perfil')
         return reverse_lazy('catalogo:painel_lojista')
 
 MAX_FOTO_SIZE = 2 * 1024 * 1024
@@ -377,8 +385,12 @@ def instalar_app(request, slug):
 def painel_lojista(request):
     lojista = get_lojista_atual(request)
 
-    if not lojista:
-        return render(request, 'painel/index.html')
+    if not request.user.is_superuser:
+        # Garante que o perfil (dados obrigatórios da loja) esteja preenchido
+        if not lojista:
+            return redirect('usuarios:perfil')
+        if not all([lojista.nome_loja, lojista.cnpj, lojista.whatsapp, lojista.logo]):
+            return redirect('usuarios:perfil')
 
     # Busca os produtos e categorias referentes a este lojista
     produtos = Produto.objects.filter(lojista=lojista)
@@ -598,6 +610,7 @@ def admin_loja_nova(request):
         user_id = request.POST.get('user_id')
         nome_loja = request.POST.get('nome_loja')
         whatsapp = request.POST.get('whatsapp')
+        cnpj = request.POST.get('cnpj', '')
         tema = request.POST.get('tema', 'minimal_nordic')
 
         if not all([user_id, nome_loja]):
@@ -609,6 +622,7 @@ def admin_loja_nova(request):
                 nome_loja=nome_loja,
                 slug=slug_unico(slugify(nome_loja)),
                 whatsapp=whatsapp or '',
+                cnpj=cnpj or '',
                 tema=tema,
             )
 
@@ -640,6 +654,7 @@ def admin_loja_editar(request, pk):
         lojista.nome_loja = request.POST.get('nome_loja')
         lojista.slug = slug_unico(slugify(lojista.nome_loja), instance=lojista)
         lojista.whatsapp = request.POST.get('whatsapp', '')
+        lojista.cnpj = request.POST.get('cnpj', '')
         lojista.tema = request.POST.get('tema', 'minimal_nordic')
         lojista.user_id = request.POST.get('user_id')
         lojista.save()

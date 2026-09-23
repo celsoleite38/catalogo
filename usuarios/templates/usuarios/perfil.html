@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil da Loja - Catálogo Digital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-green-50 min-h-screen pb-12">
+
+    <nav class="bg-white border-b px-6 py-4 flex justify-between items-center">
+        <h1 class="font-bold text-xl text-gray-800">Perfil da Loja</h1>
+        <a href="{% url 'catalogo:painel_lojista' %}" class="text-sm text-gray-600 hover:text-gray-900 font-semibold">
+            ← Voltar ao Painel
+        </a>
+    </nav>
+
+    <main class="max-w-2xl mx-auto mt-8 p-4">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h2 class="text-lg font-bold text-gray-800 mb-1">Dados da sua loja</h2>
+            <p class="text-xs text-gray-500 mb-6">Todos os campos são obrigatórios. Eles aparecem no seu catálogo e no app instalável.</p>
+
+            {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                <div class="px-4 py-3 rounded-lg text-sm font-semibold {% if message.tags == 'error' %}bg-red-100 text-red-700 border border-red-200{% else %}bg-green-100 text-green-700 border border-green-200{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if form.non_field_errors %}
+            <div class="mb-4 px-4 py-3 rounded-lg text-sm font-semibold bg-red-100 text-red-700 border border-red-200">
+                {{ form.non_field_errors.0 }}
+            </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Nome da loja *</label>
+                    {{ form.nome_loja }}
+                    {% for error in form.nome_loja.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">CNPJ *</label>
+                    {{ form.cnpj }}
+                    {% for error in form.cnpj.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">WhatsApp (com DDD) *</label>
+                    {{ form.whatsapp }}
+                    {% for error in form.whatsapp.errors %}
+                    <p class="text-xs text-red-600 mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Logo da loja *</label>
+                    <p class="text-xs text-gray-500 mb-3">Usada no ícone do app instalável. Tamanho máximo: 2MB. Formatos: PNG, JPG ou WEBP.</p>
+
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div class="w-16 h-16 rounded-xl flex items-center justify-center overflow-hidden border border-gray-200 flex-shrink-0 bg-gray-900">
+                            {% if lojista and lojista.logo %}
+                                <img id="previewLogo" src="{{ lojista.logo.url }}" alt="Logo atual" class="w-full h-full object-contain bg-white">
+                            {% else %}
+                                <span id="previewLetra" class="text-white text-xl font-bold">{{ request.user.username|slice:":1"|upper }}</span>
+                                <img id="previewLogo" src="" alt="Nova logo" class="w-full h-full object-contain bg-white hidden">
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            {{ form.logo }}
+                            {% for error in form.logo.errors %}
+                            <p class="text-xs text-red-600 mt-1">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-3.5 rounded-xl shadow transition">
+                    Salvar Perfil
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const inputLogo = document.getElementById('{{ form.logo.id_for_label }}');
+        if (inputLogo) {
+            inputLogo.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    if (this.files[0].size > 2 * 1024 * 1024) {
+                        alert('A logo não pode exceder 2MB. Selecione uma imagem menor.');
+                        this.value = '';
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.getElementById('previewLogo');
+                        const letra = document.getElementById('previewLetra');
+                        if (img) { img.src = e.target.result; img.classList.remove('hidden'); }
+                        if (letra) { letra.classList.add('hidden'); }
+                    };
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

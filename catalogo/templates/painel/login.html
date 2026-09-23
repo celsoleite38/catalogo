@@ -113,10 +113,18 @@
             <h2 class="text-xl font-bold mb-1 text-gray-800">Área do lojista</h2>
             <p class="text-sm text-gray-500 mb-6">Acesse o painel da sua loja.</p>
 
+            {% if form.non_field_errors %}
+            <div id="login-popup" role="alert"
+                 class="mb-4 px-4 py-3 rounded-xl text-sm font-semibold bg-red-100 text-red-700 border border-red-200 flex items-start justify-between gap-3 shadow">
+                <span>{{ form.non_field_errors.0|safe }}</span>
+                <button type="button" onclick="fecharPopup()" class="text-red-400 hover:text-red-600 font-bold text-lg leading-none flex-shrink-0">&times;</button>
+            </div>
+            {% endif %}
+
             <form method="post" action="{% url 'catalogo:login' %}">
                 {% csrf_token %}
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-semibold mb-2">Usuário</label>
+                    <label class="block text-gray-700 text-sm font-semibold mb-2">Email ou usuário</label>
                     <input type="text" name="username" class="w-full p-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
                 </div>
 
@@ -130,12 +138,35 @@
                 </button>
             </form>
 
-            <p class="text-center text-xs text-gray-400 mt-6">
-                Ainda não tem uma loja? <a href="https://wa.me/5535988599032" class="text-green-700 font-medium hover:underline">Fale conosco</a>
-            </p>
+            <div class="mt-6 pt-6 border-t border-gray-100">
+                <a href="{% url 'usuarios:cadastro' %}" class="block w-full text-center bg-white border-2 border-green-700 text-green-700 font-semibold py-2.5 rounded-lg hover:bg-green-50 transition">
+                    Criar minha loja
+                </a>
+
+                <div class="flex justify-center gap-4 mt-4 text-xs">
+                    <a href="{% url 'usuarios:password_reset' %}" class="text-green-700 font-medium hover:underline">Esqueci a senha</a>
+                    <span class="text-gray-300">|</span>
+                    <a href="{% url 'usuarios:reenviar' %}" class="text-green-700 font-medium hover:underline">Reenviar ativação</a>
+                </div>
+
+                <p class="text-center text-xs text-gray-400 mt-4">
+                    Ainda não tem uma loja? <a href="https://wa.me/5535988599032" class="text-green-700 font-medium hover:underline">Fale conosco</a>
+                </p>
+            </div>
         </div>
 
     </div>
+
+    <script>
+        var popup = document.getElementById('login-popup');
+        if (popup) {
+            setTimeout(function () { fecharPopup(); }, 6000);
+        }
+        function fecharPopup() {
+            var p = document.getElementById('login-popup');
+            if (p) p.style.display = 'none';
+        }
+    </script>
 
 </body>
 </html>

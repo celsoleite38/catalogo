@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar loja - Catálogo Digital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-green-50 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-md p-8">
+
+        <div class="flex items-center gap-2 mb-6 justify-center">
+            <img src="{% static 'img/logoorange.png' %}" alt="Logo Innosoft" width="44" class="object-contain">
+            <div>
+                <h1 class="font-bold text-green-900" style="font-size: 20px;">Catálogo Digital</h1>
+                <p class="text-xs text-green-800/70">Clube Orange</p>
+            </div>
+        </div>
+
+        <h2 class="text-xl font-bold mb-1 text-gray-800">Criar minha loja</h2>
+        <p class="text-sm text-gray-500 mb-6">Cadastre-se com seu email. Enviaremos um link de confirmação para ativar sua conta.</p>
+
+        {% if form.non_field_errors %}
+        <div class="mb-4 px-4 py-3 rounded-lg text-sm font-semibold bg-red-100 text-red-700 border border-red-200">
+            {{ form.non_field_errors.0 }}
+        </div>
+        {% endif %}
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-gray-700 text-sm font-semibold mb-2">Email (seu usuário)</label>
+                {{ form.email }}
+                {% for error in form.email.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-semibold mb-2">Senha</label>
+                {{ form.senha }}
+                {% for error in form.senha.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-semibold mb-2">Confirmar senha</label>
+                {{ form.confirmar_senha }}
+                {% for error in form.confirmar_senha.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="w-full bg-green-700 text-white font-semibold py-2.5 rounded-lg hover:bg-green-800 transition">
+                Cadastrar
+            </button>
+        </form>
+
+        <p class="text-center text-xs text-gray-400 mt-6">
+            Já tem conta? <a href="{% url 'catalogo:login' %}" class="text-green-700 font-medium hover:underline">Fazer login</a>
+        </p>
+    </div>
+
+</body>
+</html>

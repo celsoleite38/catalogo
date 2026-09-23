@@ -56,31 +56,12 @@ class ProdutoForm(forms.ModelForm):
 class ConfiguracaoLojistaForm(forms.ModelForm):
     class Meta:
         model = Lojista
-        fields = ['nome_loja', 'whatsapp', 'tema', 'logo']
+        fields = ['tema']
         widgets = {
-            'nome_loja': forms.TextInput(attrs={
-                'class': 'w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:outline-none'
-            }),
-            'whatsapp': forms.TextInput(attrs={
-                'class': 'w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:outline-none',
-                'placeholder': 'Ex: 5535999998888'
-            }),
             'tema': forms.Select(attrs={
                 'class': 'w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:outline-none bg-white'
             }),
-            'logo': forms.FileInput(attrs={
-                'class': 'w-full p-2.5 border border-gray-300 rounded-lg bg-gray-50',
-                'accept': 'image/png,image/jpeg,image/webp',
-            }),
         }
-
-    MAX_LOGO_SIZE = 2 * 1024 * 1024
-
-    def clean_logo(self):
-        logo = self.cleaned_data.get('logo')
-        if logo and hasattr(logo, 'size') and logo.size > self.MAX_LOGO_SIZE:
-            raise forms.ValidationError('A logo não pode exceder 2MB.')
-        return logo
 
 class TipoVariacaoForm(forms.ModelForm):
     class Meta:
