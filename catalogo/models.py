@@ -25,7 +25,7 @@ class Lojista(models.Model):
     ]
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='lojas')
     nome_loja = models.CharField(max_length=100)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=True, max_length=120)
     whatsapp = models.CharField(max_length=20)
     cnpj = models.CharField(max_length=18, blank=True, verbose_name='CNPJ')
     tema = models.CharField(max_length=30, choices=TEMAS_CHOICES, default='minimal_nordic')
