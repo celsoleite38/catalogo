@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planos - {{ user.username }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen pb-12">
+
+    <nav class="bg-gray-900 text-white px-6 py-4 flex justify-between items-center">
+        <h1 class="font-bold text-lg">Planos e Assinatura</h1>
+        <div class="flex items-center gap-4">
+            <a href="{% url 'catalogo:admin_painel' %}" class="text-sm text-gray-300 hover:text-white">Voltar</a>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto mt-8 p-4">
+
+        {% if erro %}
+        <div class="mb-6 px-4 py-3 rounded-lg text-sm font-semibold bg-red-100 text-red-700 border border-red-200">{{ erro }}</div>
+        {% endif %}
+
+        {% if status_acesso %}
+        <div class="mb-6 px-4 py-3 rounded-lg text-sm font-semibold bg-blue-100 text-blue-700 border border-blue-200">
+            Status da sua assinatura: <strong>{{ status_acesso }}</strong>
+        </div>
+        {% endif %}
+
+        <h2 class="text-xl font-bold text-gray-800 mb-6">Escolha um plano</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for p in planos %}
+            <div class="bg-white rounded-lg shadow-sm border p-6 flex flex-col">
+                <h3 class="text-lg font-bold text-gray-800">{{ p.nome }}</h3>
+                {% if p.descricao %}
+                <p class="text-sm text-gray-500 mt-1 flex-1">{{ p.descricao }}</p>
+                {% endif %}
+                <p class="text-3xl font-bold text-gray-900 mt-4">R$ {{ p.valor }}</p>
+                <p class="text-xs text-gray-400 mt-1">
+                    Ciclo: {{ p.ciclo }}
+                    {% if p.dias_trial %} · {{ p.dias_trial }} dias grátis{% endif %}
+                </p>
+                <a href="{% url 'planos:checkout' p.codigo %}"
+                   class="mt-6 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-4 py-2.5 rounded-lg text-center transition">
+                    Assinar
+                </a>
+            </div>
+            {% empty %}
+            {% if not erro %}
+            <p class="text-gray-400 text-sm">Nenhum plano disponível no momento.</p>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+    </main>
+</body>
+</html>

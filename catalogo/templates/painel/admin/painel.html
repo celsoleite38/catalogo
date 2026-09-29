@@ -12,6 +12,7 @@
         <h1 class="font-bold text-lg">Admin - {{ user.username }}</h1>
         <div class="flex items-center gap-4">
             <a href="{% url 'catalogo:painel_lojista' %}" class="text-sm text-gray-300 hover:text-white">Painel Lojista</a>
+            <a href="{% url 'planos:pagina_planos' %}" class="text-sm text-gray-300 hover:text-white">Planos</a>
             <a href="/admin/" class="text-sm text-gray-300 hover:text-white">Django Admin</a>
             <form action="{% url 'catalogo:logout' %}" method="post">
                 {% csrf_token %}

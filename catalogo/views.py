@@ -1,3 +1,6 @@
+from datetime import date, timedelta
+import requests, threading
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -624,7 +627,25 @@ def admin_loja_nova(request):
                 whatsapp=whatsapp or '',
                 cnpj=cnpj or '',
                 tema=tema,
+                status_assinatura='trial',
+                trial_fim=date.today() + timedelta(days=30)
             )
+
+            def avisa_central():
+                try:
+                    from planos.services import central_client
+                    central_client._post('/api/criar-assinatura/', {
+                        'email': user.email,
+                        'plano': 'anual',
+                        'nome': nome_loja,
+                    })
+                except Exception:
+                    pass
+            threading.Thread(target=avisa_central).start()
+
+
+
+
 
             categorias_nomes = request.POST.getlist('categoria_nome[]')
             for nome in categorias_nomes:

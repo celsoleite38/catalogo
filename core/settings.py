@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'catalogo',
     'usuarios',
+    'planos',
 ]
 
 MIDDLEWARE = [
@@ -109,9 +110,6 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
@@ -137,3 +135,8 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
 EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=10, cast=int)
+
+# Central de Cobranças
+CENTRAL_URL = config('CENTRAL_URL', default='http://127.0.0.1:8000')
+CENTRAL_SISTEMA = config('CENTRAL_SISTEMA', default='catalogo')
+CENTRAL_TOKEN = config('CENTRAL_TOKEN', default='')
