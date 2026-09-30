@@ -122,6 +122,7 @@ def webhook_central(request):
             atualizadas += Lojista.objects.filter(user=usuario).update(
                 status_assinatura='ativa',
                 trial_fim=vencimento,
+                ativo=True,  # pagamento confirmado: vitrine pública volta
             )
         return JsonResponse({'ok': True, 'lojas_atualizadas': atualizadas})
 
@@ -129,7 +130,10 @@ def webhook_central(request):
         usuarios = User.objects.filter(email=email)
         atualizadas = 0
         for usuario in usuarios:
-            atualizadas += Lojista.objects.filter(user=usuario).update(status_assinatura=status)
+            atualizadas += Lojista.objects.filter(user=usuario).update(
+                status_assinatura=status,
+                ativo=False,
+            )
         return JsonResponse({'ok': True, 'lojas_atualizadas': atualizadas})
 
     return JsonResponse({'ok': True, 'aviso': 'status ignorado'})

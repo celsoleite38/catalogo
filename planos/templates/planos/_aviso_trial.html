@@ -1,0 +1,16 @@
+{% if mostrar %}
+<div class="{% if urgente %}bg-red-600{% else %}bg-amber-500{% endif %} text-white px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+    <p class="text-sm font-semibold">
+        {% if dias == 1 %}
+            Seu período gratuito termina <strong>amanhã</strong> ({{ trial_fim|date:"d/m/Y" }}).
+        {% else %}
+            Seu período gratuito termina em <strong>{{ dias }} dias</strong> ({{ trial_fim|date:"d/m/Y" }}).
+        {% endif %}
+        Depois disso a loja fica offline até a confirmação do pagamento.
+    </p>
+    <a href="{% url 'planos:pagina_planos' %}"
+       class="text-sm bg-white {% if urgente %}text-red-700{% else %}text-amber-700{% endif %} font-bold px-4 py-2 rounded-lg hover:opacity-90">
+        Assinar agora
+    </a>
+</div>
+{% endif %}

@@ -36,15 +36,17 @@ class Lojista(models.Model):
     notificacoes_habilitadas = models.BooleanField(default=True, verbose_name='Ativar notificações')
     link_app_habilitado = models.BooleanField(default=True, verbose_name='Link de instalação do app (PWA)')
 
-    status_assinatura = models.CharField(max_length=20, default='trial')
+    status_assinatura = models.CharField(max_length=20, default='inativa')
     trial_fim = models.DateField(null=True, blank=True)
     asaas_customer_id = models.CharField(max_length=50, blank=True, null=True)
 
     def esta_com_acesso_liberado(self):
-        if not self.trial_fim:
+        if self.status_assinatura == 'ativa':
             return True
+        if not self.trial_fim:
+            return False
         from datetime import date
-        return date.today() <= self.trial_fim or self.status_assinatura == 'ativa'
+        return date.today() <= self.trial_fim
 
     def __str__(self):
         return self.nome_loja
@@ -55,6 +57,25 @@ def criar_tipos_padrao(sender, instance, created, **kwargs):
     if created:
         for nome in ['Tamanho', 'Cor']:
             TipoVariacao.objects.get_or_create(lojista=instance, nome=nome)
+
+
+class TrialAviso(models.Model):
+    """Registro dos e-mails de aviso do trial, para não enviar duas vezes."""
+
+    lojista = models.ForeignKey(Lojista, on_delete=models.CASCADE, related_name='avisos_trial')
+    momento = models.CharField(
+        max_length=10,
+        choices=[('antes', 'Antes do vencimento'), ('depois', 'Após o vencimento')],
+    )
+    dias = models.IntegerField(help_text='Dias em relação ao vencimento (negativo = antes)')
+    enviado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [('lojista', 'momento', 'dias')]
+        ordering = ['-enviado_em']
+
+    def __str__(self):
+        return f"{self.lojista.nome_loja} - {self.momento} {self.dias}"
 
 
 class Categoria(models.Model):

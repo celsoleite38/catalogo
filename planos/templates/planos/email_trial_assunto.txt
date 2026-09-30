@@ -1,0 +1,1 @@
+{% if momento == "antes" %}{% if dias == 1 %}Seu período gratuito termina amanhã{% else %}Seu período gratuito termina em {{ dias }} dias{% endif %} — {{ lojista.nome_loja }}{% else %}{% if dias == 1 %}Sua loja foi pausada hoje{% else %}Lembrete: sua loja segue pausada ({{ dias }} dias){% endif %} — {{ lojista.nome_loja }}{% endif %}

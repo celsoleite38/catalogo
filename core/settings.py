@@ -140,3 +140,6 @@ EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=10, cast=int)
 CENTRAL_URL = config('CENTRAL_URL', default='http://127.0.0.1:8000')
 CENTRAL_SISTEMA = config('CENTRAL_SISTEMA', default='catalogo')
 CENTRAL_TOKEN = config('CENTRAL_TOKEN', default='')
+
+# Domínio público do catálogo (usado nos links dos e-mails de trial)
+SITE_URL = config('SITE_URL', default='')

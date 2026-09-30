@@ -96,12 +96,12 @@ def verificar_acesso(email):
 def registrar_trial(email, nome=''):
     """Registra a assinatura de trial do usuário na Central (idempotente).
 
-    Usa o primeiro plano ativo como referência; a Central aplica o próprio
+    Usa o plano de referência como base; a Central aplica o próprio
     dias_trial do plano. Chamada de forma assíncrona pelos fluxos de cadastro.
     """
     try:
-        from planos.models import Plano
-        plano = Plano.objects.filter(ativo=True).order_by('valor').first()
+        from .trial import plano_referencia
+        plano = plano_referencia()
         return _post('/api/criar-assinatura/', {
             'email': email,
             'plano': plano.codigo if plano else 'anual',

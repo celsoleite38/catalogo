@@ -1,4 +1,3 @@
-from datetime import date, timedelta
 import requests, threading
 
 from django.shortcuts import render, redirect, get_object_or_404
@@ -14,9 +13,11 @@ from django import forms
 from io import BytesIO
 from .models import Produto, Categoria, VariacaoProduto, Lojista, TipoVariacao, ValorVariacao
 from .forms import ProdutoForm, CategoriaForm, ConfiguracaoLojistaForm, TipoVariacaoForm
+from .decorators import require_acesso
 from django.contrib import messages
 from .themes import TEMAS, get_tema
 from planos.services import central_client
+from planos.services import trial
 
 
 def slug_unico(base_slug, instance=None):
@@ -92,6 +93,7 @@ def get_lojista_atual(request):
     return None
 
 @login_required
+@require_acesso
 def editar_produto(request, pk):
     produto = get_object_or_404(Produto, pk=pk, lojista__user=request.user)
     lojista = produto.lojista
@@ -386,6 +388,7 @@ def instalar_app(request, slug):
 
 
 @login_required
+@require_acesso
 def painel_lojista(request):
     lojista = get_lojista_atual(request)
 
@@ -395,21 +398,6 @@ def painel_lojista(request):
             return redirect('usuarios:perfil')
         if not all([lojista.nome_loja, lojista.cnpj, lojista.whatsapp, lojista.logo]):
             return redirect('usuarios:perfil')
-
-        # Porte de acesso: sem assinatura ativa/trial, vai escolher um plano
-        acesso = central_client.verificar_acesso(request.user.email)
-        status = (acesso or {}).get('status')
-        if status not in ('ativa', 'trial'):
-            if (lojista.status_assinatura == 'trial'
-                    and lojista.trial_fim and lojista.trial_fim > date.today()
-                    and status in (None, 'sem_assinatura')):
-                # Segurança contra a thread do cadastro ter falhado: tenta de novo
-                threading.Thread(
-                    target=central_client.registrar_trial,
-                    args=(request.user.email, lojista.nome_loja),
-                    daemon=True,
-                ).start()
-            return redirect('planos:pagina_planos')
 
     # Busca os produtos e categorias referentes a este lojista
     produtos = Produto.objects.filter(lojista=lojista)
@@ -427,6 +415,7 @@ def painel_lojista(request):
 
 
 @login_required
+@require_acesso
 def cadastrar_produto(request):
     lojista = get_lojista_atual(request)
 
@@ -468,6 +457,7 @@ def cadastrar_produto(request):
 
 
 @login_required
+@require_acesso
 def cadastrar_categoria(request):
     lojista = get_lojista_atual(request)
 
@@ -495,6 +485,7 @@ def cadastrar_categoria(request):
 
 
 @login_required
+@require_acesso
 def configuracoes_lojista(request):
     lojista = get_lojista_atual(request)
 
@@ -517,6 +508,7 @@ def configuracoes_lojista(request):
 
 
 @login_required
+@require_acesso
 def gerenciar_variacoes(request):
     lojista = get_lojista_atual(request)
 
@@ -549,6 +541,7 @@ def gerenciar_variacoes(request):
 
 
 @login_required
+@require_acesso
 def excluir_tipo_variacao(request, pk):
     lojista = get_lojista_atual(request)
     tipo = get_object_or_404(TipoVariacao, pk=pk, lojista=lojista)
@@ -557,6 +550,7 @@ def excluir_tipo_variacao(request, pk):
 
 
 @login_required
+@require_acesso
 def excluir_valor_variacao(request, pk):
     lojista = get_lojista_atual(request)
     valor = get_object_or_404(ValorVariacao, pk=pk, tipo__lojista=lojista)
@@ -636,6 +630,7 @@ def admin_loja_nova(request):
             messages.error(request, 'Usuário e nome da loja são obrigatórios.')
         else:
             user = get_object_or_404(User, pk=user_id)
+            fim_trial = trial.data_fim_trial()
             lojista = Lojista.objects.create(
                 user=user,
                 nome_loja=nome_loja,
@@ -643,21 +638,17 @@ def admin_loja_nova(request):
                 whatsapp=whatsapp or '',
                 cnpj=cnpj or '',
                 tema=tema,
-                status_assinatura='trial',
-                trial_fim=date.today() + timedelta(days=30)
+                status_assinatura='trial' if fim_trial else 'inativa',
+                trial_fim=fim_trial,
+                ativo=bool(fim_trial),
             )
 
-            def avisa_central():
-                try:
-                    from planos.services import central_client
-                    central_client._post('/api/criar-assinatura/', {
-                        'email': user.email,
-                        'plano': 'anual',
-                        'nome': nome_loja,
-                    })
-                except Exception:
-                    pass
-            threading.Thread(target=avisa_central).start()
+            if fim_trial:
+                threading.Thread(
+                    target=central_client.registrar_trial,
+                    args=(user.email, nome_loja),
+                    daemon=True,
+                ).start()
 
 
 

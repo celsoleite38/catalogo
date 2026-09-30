@@ -1,5 +1,4 @@
 import threading
-from datetime import date, timedelta
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -15,11 +14,11 @@ from django.utils.text import slugify
 from catalogo.models import Lojista
 from catalogo.views import slug_unico
 from planos.services import central_client
+from planos.services import trial
 from .forms import CadastroForm, PerfilForm
 
 User = get_user_model()
 LOJISTA_SUBJECT = 'Confirme seu cadastro no Catálogo Digital'
-TRIAL_DIAS = 14
 
 
 def _enviar_email_confirmacao(request, user):
@@ -150,10 +149,15 @@ def perfil(request):
         if form.is_valid():
             criar_lojista = lojista is None
             if lojista is None:
+                # Trial conforme os dias definidos no admin de Planos.
+                # Sem trial (dias_trial = 0) a loja já nasce offline e sem
+                # assinatura: o acesso só vem após o pagamento.
+                fim_trial = trial.data_fim_trial()
                 lojista = Lojista(
                     user=request.user,
-                    status_assinatura='trial',
-                    trial_fim=date.today() + timedelta(days=TRIAL_DIAS),
+                    status_assinatura='trial' if fim_trial else 'inativa',
+                    trial_fim=fim_trial,
+                    ativo=bool(fim_trial),
                 )
 
             lojista.nome_loja = form.cleaned_data['nome_loja']
@@ -170,7 +174,7 @@ def perfil(request):
 
             lojista.save()
 
-            if criar_lojista:
+            if criar_lojista and lojista.trial_fim:
                 threading.Thread(
                     target=central_client.registrar_trial,
                     args=(request.user.email, lojista.nome_loja),

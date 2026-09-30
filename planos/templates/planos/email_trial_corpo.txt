@@ -1,0 +1,20 @@
+Olá!
+
+{% if momento == "antes" %}
+{% if dias == 1 %}O período gratuito da sua loja **{{ lojista.nome_loja }}** termina **amanhã** ({{ trial_fim|date:"d/m/Y" }}).{% else %}O período gratuito da sua loja **{{ lojista.nome_loja }}** termina em **{{ dias }} dias** ({{ trial_fim|date:"d/m/Y" }}).{% endif %}
+
+Para não perder o acesso, escolha um plano agora. A vitrine pública da sua loja fica offline
+até a confirmação do pagamento.
+{% else %}
+O período gratuito da sua loja **{{ lojista.nome_loja }}** já terminou ({{ trial_fim|date:"d/m/Y" }})
+e a vitrine pública está pausada. O painel continua acessível para você assinar quando quiser.
+{% endif %}
+{% if planos_url %}
+Escolha seu plano: {{ planos_url }}
+{% else %}
+Acesse o catálogo e escolha seu plano.
+{% endif %}
+Se já pagou, ignore esta mensagem: a confirmação é automática.
+
+--
+Equipe Catálogo Orange

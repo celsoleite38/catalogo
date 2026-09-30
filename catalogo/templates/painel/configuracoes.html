@@ -9,6 +9,8 @@
     <style> body { font-family: 'Plus Jakarta Sans', sans-serif; } </style>
 </head>
 <body class="bg-gray-50 min-h-screen pb-12">
+    {% load planos_tags %}
+    {% aviso_trial %}
 
     <nav class="bg-white border-b px-6 py-4 flex justify-between items-center">
         <h1 class="font-bold text-xl text-gray-800">{{ lojista.nome_loja }} - Aparência & Tema</h1>
