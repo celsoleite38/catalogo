@@ -1,3 +1,6 @@
+import threading
+from datetime import date, timedelta
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
@@ -11,10 +14,12 @@ from django.utils.text import slugify
 
 from catalogo.models import Lojista
 from catalogo.views import slug_unico
+from planos.services import central_client
 from .forms import CadastroForm, PerfilForm
 
 User = get_user_model()
 LOJISTA_SUBJECT = 'Confirme seu cadastro no Catálogo Digital'
+TRIAL_DIAS = 14
 
 
 def _enviar_email_confirmacao(request, user):
@@ -143,8 +148,13 @@ def perfil(request):
     if request.method == 'POST':
         form = PerfilForm(request.POST, request.FILES, logo_obrigatoria=logo_obrigatoria)
         if form.is_valid():
+            criar_lojista = lojista is None
             if lojista is None:
-                lojista = Lojista(user=request.user)
+                lojista = Lojista(
+                    user=request.user,
+                    status_assinatura='trial',
+                    trial_fim=date.today() + timedelta(days=TRIAL_DIAS),
+                )
 
             lojista.nome_loja = form.cleaned_data['nome_loja']
             lojista.cnpj = form.cleaned_data['cnpj']
@@ -159,6 +169,14 @@ def perfil(request):
                 lojista.slug = slug_unico(slugify(lojista.nome_loja))
 
             lojista.save()
+
+            if criar_lojista:
+                threading.Thread(
+                    target=central_client.registrar_trial,
+                    args=(request.user.email, lojista.nome_loja),
+                    daemon=True,
+                ).start()
+
             messages.success(request, 'Perfil da loja salvo com sucesso!')
             return redirect('catalogo:painel_lojista')
     else:

@@ -16,6 +16,7 @@ from .models import Produto, Categoria, VariacaoProduto, Lojista, TipoVariacao, 
 from .forms import ProdutoForm, CategoriaForm, ConfiguracaoLojistaForm, TipoVariacaoForm
 from django.contrib import messages
 from .themes import TEMAS, get_tema
+from planos.services import central_client
 
 
 def slug_unico(base_slug, instance=None):
@@ -394,6 +395,21 @@ def painel_lojista(request):
             return redirect('usuarios:perfil')
         if not all([lojista.nome_loja, lojista.cnpj, lojista.whatsapp, lojista.logo]):
             return redirect('usuarios:perfil')
+
+        # Porte de acesso: sem assinatura ativa/trial, vai escolher um plano
+        acesso = central_client.verificar_acesso(request.user.email)
+        status = (acesso or {}).get('status')
+        if status not in ('ativa', 'trial'):
+            if (lojista.status_assinatura == 'trial'
+                    and lojista.trial_fim and lojista.trial_fim > date.today()
+                    and status in (None, 'sem_assinatura')):
+                # Segurança contra a thread do cadastro ter falhado: tenta de novo
+                threading.Thread(
+                    target=central_client.registrar_trial,
+                    args=(request.user.email, lojista.nome_loja),
+                    daemon=True,
+                ).start()
+            return redirect('planos:pagina_planos')
 
     # Busca os produtos e categorias referentes a este lojista
     produtos = Produto.objects.filter(lojista=lojista)

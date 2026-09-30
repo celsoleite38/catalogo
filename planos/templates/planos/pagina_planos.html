@@ -11,7 +11,11 @@
     <nav class="bg-gray-900 text-white px-6 py-4 flex justify-between items-center">
         <h1 class="font-bold text-lg">Planos e Assinatura</h1>
         <div class="flex items-center gap-4">
+            {% if user.is_superuser %}
             <a href="{% url 'catalogo:admin_painel' %}" class="text-sm text-gray-300 hover:text-white">Voltar</a>
+            {% elif status_acesso == 'ativa' or status_acesso == 'trial' %}
+            <a href="{% url 'catalogo:painel_lojista' %}" class="text-sm text-gray-300 hover:text-white">Voltar</a>
+            {% endif %}
         </div>
     </nav>
 

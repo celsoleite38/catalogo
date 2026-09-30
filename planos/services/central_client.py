@@ -93,6 +93,24 @@ def verificar_acesso(email):
         return None
 
 
+def registrar_trial(email, nome=''):
+    """Registra a assinatura de trial do usuário na Central (idempotente).
+
+    Usa o primeiro plano ativo como referência; a Central aplica o próprio
+    dias_trial do plano. Chamada de forma assíncrona pelos fluxos de cadastro.
+    """
+    try:
+        from planos.models import Plano
+        plano = Plano.objects.filter(ativo=True).order_by('valor').first()
+        return _post('/api/criar-assinatura/', {
+            'email': email,
+            'plano': plano.codigo if plano else 'anual',
+            'nome': nome or '',
+        })
+    except requests.RequestException:
+        return None, 0
+
+
 def registrar_venda(valor_total, valor_comissao=0, email='', dados=None):
     """Reporta uma venda à Central (sistemas do tipo VENDA)."""
     payload = {
