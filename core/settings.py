@@ -1,30 +1,22 @@
 from pathlib import Path
 from django.urls import reverse_lazy
-import os
-from decouple import config
+from decouple import config, Csv
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+SECRET_KEY = config('SECRET_KEY')
+DEBUG = config('DEBUG', default=False, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='', cast=Csv())
 
 VAPID_PRIVATE_KEY_PATH = str(BASE_DIR / 'private_key.pem')
 VAPID_CLAIMS = {
     "sub": config('VAPID_CLAIMS_EMAIL')
 }
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ccr-d=$p1p#e=leo52w&#lr7#!!_94qhkh6lo1q6j0tp#-4^3!'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
-
-# Application definition
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -57,6 +49,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -67,65 +60,47 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if config('DB_ENGINE', default='sqlite3') == 'postgresql':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('DB_NAME'),
+            'USER': config('DB_USER'),
+            'PASSWORD': config('DB_PASSWORD'),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default='5432'),
+        }
     }
-}
-
-
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
 
 LANGUAGE_CODE = 'pt-br'
-
 TIME_ZONE = 'America/Sao_Paulo'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
-
-import os
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
+MEDIA_ROOT = BASE_DIR / 'media'
 
 LOGIN_REDIRECT_URL = '/painel/'
 LOGOUT_REDIRECT_URL = '/login/'
 LOGIN_URL = 'catalogo:login'
 
-# Email (confirmação de cadastro de lojistas)
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = config('EMAIL_HOST', default='')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
