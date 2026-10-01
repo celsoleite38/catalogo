@@ -152,6 +152,25 @@ class TrialTests(TestCase):
         self.assertTrue(self.lojista.ativo)
         self.assertEqual(self.lojista.status_assinatura, 'ativa')
 
+    @patch('planos.services.central_client.verificar_acesso', return_value=COM_PAGAMENTO)
+    def test_pagamento_confirmado_reativa_vitrine_no_acesso(self, _m):
+        """A Central não avisa o catálogo, então é o painel que sincroniza."""
+        self.lojista.status_assinatura = 'inativa'
+        self.lojista.trial_fim = None
+        self.lojista.ativo = False
+        self.lojista.save()
+
+        resp = self.client.get('/painel/')
+        self.assertEqual(resp.status_code, 200)
+
+        self.lojista.refresh_from_db()
+        self.assertEqual(self.lojista.status_assinatura, 'ativa')
+        self.assertIsNone(self.lojista.trial_fim)
+        self.assertTrue(self.lojista.ativo)
+        vitrine = self.client.get('/loja-1/')
+        self.assertEqual(vitrine.status_code, 200)
+        self.assertNotContains(vitrine, 'fora do ar')
+
     # --- e-mails ---
     def _roda_comando(self):
         call_command('enviar_avisos_trial')

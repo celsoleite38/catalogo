@@ -23,6 +23,22 @@ def _trial_local_valido(lojista):
     )
 
 
+def _sincronizar_pagamento(lojista):
+    """A Central confirmou pagamento e a loja local ainda não sabe.
+
+    A Central nunca avisa o catálogo (não existe callback no fluxo de
+    pagamento), então quem paga só volta a ter vitrine depois de o próprio
+    lojista passar pelo painel. Aqui a vitrine volta sozinha.
+    """
+    if not lojista or (lojista.status_assinatura == 'ativa' and lojista.ativo):
+        return
+    Lojista.objects.filter(pk=lojista.pk).update(
+        status_assinatura='ativa',
+        trial_fim=None,
+        ativo=True,
+    )
+
+
 def require_acesso(view_func):
     """Libera a view apenas para assinante/trial; senão manda para os planos."""
 
@@ -36,6 +52,8 @@ def require_acesso(view_func):
         status = (acesso or {}).get('status')
 
         if status in ('ativa', 'trial'):
+            if status == 'ativa':
+                _sincronizar_pagamento(lojista)
             return view_func(request, *args, **kwargs)
 
         if _trial_local_valido(lojista):
