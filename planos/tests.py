@@ -4,6 +4,7 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
+import requests
 from django.core.management import call_command
 from django.test import Client, TestCase, RequestFactory, override_settings
 
@@ -308,3 +309,57 @@ class TrialTests(TestCase):
             self.lojista.save()
             self._roda_comando()
         self.assertEqual(len(mail.outbox), 0)
+
+
+class CheckoutEmailTests(TestCase):
+    """O e-mail da assinatura vem SEMPRE do login, nunca do formulário."""
+
+    def setUp(self):
+        self.plano = Plano.objects.create(
+            codigo='teste', nome='Teste', valor=10, ciclo='MONTHLY',
+            ativo=True, ordem=1,
+        )
+        self.user = User.objects.create_user('co', 'login@x.com', 'x')
+        self.lojista = Lojista.objects.create(
+            user=self.user, nome_loja='Loja Checkout', slug='loja-checkout',
+            whatsapp='1', cnpj='00000000000199',
+            status_assinatura='trial',
+            trial_fim=date.today() + timedelta(days=3),
+            ativo=True,
+        )
+        self.client = Client()
+        self.client.force_login(self.user)
+
+    @patch('planos.views.central_client.criar_checkout',
+           return_value=({'link': 'http://pagamento.test'}, 200))
+    def test_forca_email_do_login(self, _m):
+        resp = self.client.post('/planos/checkout/teste/', {
+            'email': 'outro@x.com',
+            'nome': 'Cliente',
+            'cpf_cnpj': '90049172050',
+        })
+        self.assertEqual(resp.status_code, 302)
+        kwargs = _m.call_args.kwargs
+        self.assertEqual(kwargs['email'], 'login@x.com')
+
+    @patch('planos.views.central_client.criar_checkout',
+           return_value=({'erro': 'sem resposta'}, 500))
+    def test_erro_da_central_nao_vira_500(self, _m):
+        resp = self.client.post('/planos/checkout/teste/', {
+            'email': 'outro@x.com',
+            'nome': 'Cliente',
+            'cpf_cnpj': '90049172050',
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'sem resposta')
+
+    @patch('planos.views.central_client.criar_checkout',
+           side_effect=requests.ConnectionError('timeout'))
+    def test_falha_inesperada_nao_vira_500(self, _m):
+        resp = self.client.post('/planos/checkout/teste/', {
+            'email': 'outro@x.com',
+            'nome': 'Cliente',
+            'cpf_cnpj': '90049172050',
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'Não foi possível gerar o pagamento')

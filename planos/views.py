@@ -52,7 +52,7 @@ def checkout(request, plano_codigo):
         return redirect('planos:pagina_planos')
 
     if request.method == 'POST':
-        email = request.POST.get('email', '').strip()
+        email = request.user.email
         nome = request.POST.get('nome', '').strip()
         cpf_cnpj = request.POST.get('cpf_cnpj', '').strip()
 
