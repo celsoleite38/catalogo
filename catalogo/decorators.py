@@ -48,6 +48,9 @@ def require_acesso(view_func):
             return view_func(request, *args, **kwargs)
 
         lojista = Lojista.objects.filter(user=request.user).first()
+        if lojista is None:
+            return view_func(request, *args, **kwargs)
+
         acesso = central_client.verificar_acesso(request.user.email)
         status = (acesso or {}).get('status')
 

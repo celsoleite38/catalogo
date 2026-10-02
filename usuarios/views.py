@@ -60,7 +60,7 @@ ativar sua conta, clique no botão abaixo:</p>
 
 def cadastro(request):
     if request.user.is_authenticated:
-        return redirect('catalogo:painel_lojista')
+        return redirect('usuarios:perfil')
 
     if request.method == 'POST':
         form = CadastroForm(request.POST)

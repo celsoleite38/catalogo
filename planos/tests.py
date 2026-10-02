@@ -132,6 +132,19 @@ class TrialTests(TestCase):
         self.lojista.save()
         self.assertNotEqual(self.client.get('/painel/').status_code, 302)
 
+    # --- fluxo de cadastro (não pode cair em /planos/ sem ter loja) ---
+    def test_cadastro_para_autenticado_leva_ao_perfil(self):
+        resp = self.client.get('/usuarios/cadastro/')
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('/usuarios/perfil/', resp['Location'])
+
+    @patch('planos.services.central_client.verificar_acesso', return_value=SEM_ACESSO)
+    def test_usuario_sem_loja_nao_cai_em_planos(self, _m):
+        user_sem_loja = User.objects.create_user('t2', 't2@x.com', 'x')
+        self.client.force_login(user_sem_loja)
+        resp = self.client.get('/painel/')
+        self.assertFalse(self.aponta_para_planos(resp), f'{resp.status_code} -> {resp.get("Location")}')
+
     # --- vitrine pública ---
     def test_vitrine_online_no_trial(self):
         self.assertEqual(self.client.get('/loja-1/').status_code, 200)
