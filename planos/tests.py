@@ -150,6 +150,16 @@ class TrialTests(TestCase):
         self.lojista.save()
         self.assertNotEqual(self.client.get('/painel/').status_code, 302)
 
+    @patch('planos.services.central_client.verificar_acesso', return_value=COM_TRIAL)
+    def test_painel_liberto_mostra_banner_offline(self, _m):
+        self.lojista.ativo = False
+        self.lojista.trial_fim = date.today() - timedelta(days=1)
+        self.lojista.save()
+        resp = self.client.get('/painel/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'vitrine está offline')
+        self.assertContains(resp, 'Ver planos')
+
     # --- fluxo de cadastro (não pode cair em /planos/ sem ter loja) ---
     def test_cadastro_para_autenticado_leva_ao_perfil(self):
         resp = self.client.get('/usuarios/cadastro/')

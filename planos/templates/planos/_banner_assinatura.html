@@ -1,0 +1,12 @@
+{% if mostrar %}
+<div class="bg-gray-800 text-white px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+    <p class="text-sm font-semibold">
+        Sua assinatura precisa ser regularizada para a vitrine voltar ao ar.
+        <span class="opacity-80 font-normal">A vitrine está offline.</span>
+    </p>
+    <a href="{% url 'planos:pagina_planos' %}"
+       class="text-sm bg-green-600 text-white font-bold px-4 py-2 rounded-lg hover:opacity-90">
+        Ver planos
+    </a>
+</div>
+{% endif %}

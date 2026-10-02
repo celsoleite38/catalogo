@@ -30,3 +30,21 @@ def aviso_trial(context):
         'trial_fim': lojista.trial_fim,
         'urgente': dias <= 1,
     }
+
+
+@register.inclusion_tag('planos/_banner_assinatura.html', takes_context=True)
+def aviso_assinatura(context):
+    """Banner quando a vitrine está offline (trial vencido, sem assinatura ou
+    pagamento cancelado), mesmo que o painel esteja liberado pela Central."""
+    request = context.get('request')
+    user = getattr(request, 'user', None)
+    if not user or not user.is_authenticated or user.is_superuser:
+        return {'mostrar': False}
+
+    lojista = user.lojas.first()
+    if not lojista:
+        return {'mostrar': False}
+    if lojista.ativo and lojista.esta_com_acesso_liberado():
+        return {'mostrar': False}
+
+    return {'mostrar': True, 'lojista': lojista}
