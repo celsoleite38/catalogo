@@ -1,22 +1,30 @@
 """Regras do período de teste (trial) do catálogo.
 
-Os dias de trial saem do admin de Planos (campo `dias_trial` do plano).
-`dias_trial = 0` significa "sem trial": o lojista vai direto para o
-pagamento e o acesso só é liberado depois da confirmação.
+Os dias de trial são um valor único/global, editável no admin de Planos
+(modelo `ConfiguracaoGlobal`). `dias_trial = 0` significa "sem trial": o
+lojista vai direto para o pagamento e o acesso só é liberado depois da
+confirmação.
 """
 from datetime import date, timedelta
 
 
+def get_config():
+    """Configuração global do trial (única linha na tabela)."""
+    from ..models import ConfiguracaoGlobal
+    return ConfiguracaoGlobal.objects.first()
+
+
 def plano_referencia():
-    """Plano usado como referência para o trial (o mais barato ativo)."""
+    """Plano usado como referência para registrar o trial na Central
+    (o mais barato ativo). Não define mais os dias do trial."""
     from ..models import Plano
     return Plano.objects.filter(ativo=True).order_by('valor', 'ordem').first()
 
 
 def dias_trial():
-    """Quantos dias de teste, conforme definido no admin de Planos."""
-    plano = plano_referencia()
-    return int(plano.dias_trial or 0) if plano else 0
+    """Quantos dias de trial (valor global definido no admin)."""
+    cfg = get_config()
+    return int(cfg.dias_trial or 0) if cfg else 0
 
 
 def data_fim_trial():

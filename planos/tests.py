@@ -10,6 +10,7 @@ from django.test import Client, TestCase, RequestFactory, override_settings
 from catalogo.models import Lojista, TrialAviso
 from planos.models import Plano
 from planos.services import trial as trial_service
+from planos.services import central_client
 from planos.templatetags.planos_tags import aviso_trial
 
 User = get_user_model()
@@ -28,9 +29,12 @@ COM_PAGAMENTO = {'pode_acessar': True, 'status': 'ativa'}
 @override_settings(MEDIA_ROOT='/tmp/opencode/test-media-trial')
 class TrialTests(TestCase):
     def setUp(self):
+        cfg = trial_service.get_config()
+        cfg.dias_trial = 3
+        cfg.save()
         self.plano = Plano.objects.create(
             codigo='teste', nome='Teste', valor=10, ciclo='MONTHLY',
-            dias_trial=3, ativo=True, ordem=1,
+            ativo=True, ordem=1,
         )
         self.user = User.objects.create_user('t1', 't1@x.com', 'x')
         self.lojista = Lojista.objects.create(
@@ -52,20 +56,26 @@ class TrialTests(TestCase):
     def aponta_para_planos(self, resp):
         return resp.status_code == 302 and '/planos/' in resp.get('Location', '')
 
-    # --- regras do admin ---
-    def test_dias_vem_do_admin(self):
+    # --- regras do trial global ---
+    def test_dias_vem_da_configuracao_global(self):
         self.assertEqual(trial_service.dias_trial(), 3)
         self.assertEqual(trial_service.data_fim_trial(), date.today() + timedelta(days=3))
 
     def test_zero_significa_sem_trial(self):
-        self.plano.dias_trial = 0
-        self.plano.save()
+        cfg = trial_service.get_config()
+        cfg.dias_trial = 0
+        cfg.save()
         self.assertEqual(trial_service.dias_trial(), 0)
         self.assertIsNone(trial_service.data_fim_trial())
 
     def test_plano_mais_barato_e_a_referencia(self):
-        Plano.objects.create(codigo='caro', nome='Caro', valor=99, dias_trial=20, ativo=True, ordem=2)
+        Plano.objects.create(codigo='caro', nome='Caro', valor=99, ativo=True, ordem=2)
         self.assertEqual(trial_service.plano_referencia().codigo, 'teste')
+
+    def test_planos_listam_o_mesmo_trial_global(self):
+        planos = central_client.listar_planos()
+        dias = {p['dias_trial'] for p in planos}
+        self.assertEqual(dias, {3})
 
     # --- banner D-5..D-1 ---
     def test_banner_aparece_ate_d1(self):

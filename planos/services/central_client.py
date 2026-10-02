@@ -43,8 +43,14 @@ def _post(caminho, dados):
 
 def listar_planos():
     """Lista os planos do catálogo (cadastrados no admin local, já sincronizados
-    com a Central pela mesma API de plano do sistema)."""
+    com a Central pela mesma API de plano do sistema).
+
+    O `dias_trial` exibido/contratado é o valor global da ConfiguracaoGlobal
+    (trial único para todos os planos).
+    """
     from planos.models import Plano
+    from .trial import dias_trial
+    dias = dias_trial()
     return [
         {
             'codigo': p.codigo,
@@ -52,7 +58,7 @@ def listar_planos():
             'descricao': p.descricao,
             'valor': str(p.valor),
             'ciclo': p.ciclo,
-            'dias_trial': p.dias_trial,
+            'dias_trial': dias,
             'ativo': p.ativo,
         }
         for p in Plano.objects.filter(ativo=True)
@@ -96,8 +102,9 @@ def verificar_acesso(email):
 def registrar_trial(email, nome=''):
     """Registra a assinatura de trial do usuário na Central (idempotente).
 
-    Usa o plano de referência como base; a Central aplica o próprio
-    dias_trial do plano. Chamada de forma assíncrona pelos fluxos de cadastro.
+    Usa o plano de referência como base; os planos sincronizados levam o
+    mesmo `dias_trial` global. Chamada de forma assíncrona pelos fluxos de
+    cadastro.
     """
     try:
         from .trial import plano_referencia

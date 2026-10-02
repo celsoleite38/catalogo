@@ -18,7 +18,6 @@ class Plano(models.Model):
     descricao = models.TextField(blank=True)
     valor = models.DecimalField(max_digits=10, decimal_places=2)
     ciclo = models.CharField(max_length=20, choices=CICLO_CHOICES, default='MONTHLY')
-    dias_trial = models.IntegerField(default=30, help_text='0 = sem trial')
     ativo = models.BooleanField(default=True)
     ordem = models.PositiveIntegerField(default=0)
 
@@ -29,3 +28,23 @@ class Plano(models.Model):
 
     def __str__(self):
         return f'{self.nome} - R$ {self.valor}'
+
+
+class ConfiguracaoGlobal(models.Model):
+    """Configurações globais do sistema (uma única linha no banco).
+
+    Contém o período de trial único do catálogo, valendo para todos os
+    planos e todos os novos cadastros. Editável pelo admin.
+    """
+
+    dias_trial = models.IntegerField(
+        default=30,
+        help_text='Dias de trial global. 0 = sem trial.',
+    )
+
+    class Meta:
+        verbose_name = 'Configuração Global'
+        verbose_name_plural = 'Configurações Globais'
+
+    def __str__(self):
+        return f'Configuração Global (trial: {self.dias_trial} dias)'
