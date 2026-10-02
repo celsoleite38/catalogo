@@ -1,3 +1,4 @@
+import logging
 import threading
 
 from django.contrib.auth import get_user_model
@@ -18,6 +19,7 @@ from planos.services import trial
 from .forms import CadastroForm, PerfilForm
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 LOJISTA_SUBJECT = 'Confirme seu cadastro no Catálogo Digital'
 
 
@@ -75,6 +77,7 @@ def cadastro(request):
                 _enviar_email_confirmacao(request, user)
                 email_enviado = True
             except Exception:
+                logger.exception('Falha ao enviar e-mail de confirmação para %s', email)
                 email_enviado = False
             return render(request, 'usuarios/confirmacao_enviada.html', {
                 'email': email,
@@ -114,6 +117,7 @@ def reenviar_confirmacao(request):
             try:
                 _enviar_email_confirmacao(request, usuario)
             except Exception:
+                logger.exception('Falha ao reenviar e-mail de confirmação para %s', email)
                 messages.error(
                     request,
                     'Não foi possível enviar o email agora. Verifique o SMTP e tente novamente.',
