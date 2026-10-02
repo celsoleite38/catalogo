@@ -8,11 +8,14 @@
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
     <div class="text-center max-w-md">
-        <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-            </svg>
-        </div>
+        {% if lojista.logo %}
+            <img src="{{ lojista.logo.url }}" alt="{{ lojista.nome_loja }}"
+                 class="w-20 h-20 rounded-full object-cover object-center mx-auto mb-6">
+        {% else %}
+            <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span class="text-2xl font-bold text-red-500">{{ lojista.nome_loja|first|upper }}</span>
+            </div>
+        {% endif %}
         <h1 class="text-2xl font-bold text-gray-800 mb-2">Loja fora do ar</h1>
         <p class="text-gray-500 mb-2">O catálogo de <strong>{{ lojista.nome_loja }}</strong> está pausado no momento.</p>
         <p class="text-sm text-gray-400">Se você é o responsável por esta loja, regularize a assinatura para publicá-la novamente.</p>

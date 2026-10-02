@@ -167,6 +167,42 @@ class TrialTests(TestCase):
     def test_vitrine_online_no_trial(self):
         self.assertEqual(self.client.get('/loja-1/').status_code, 200)
 
+    def test_vitrine_bloqueada_trial_vencido_sem_cron(self):
+        self.lojista.trial_fim = date.today() - timedelta(days=1)
+        self.lojista.save()
+        resp = self.client.get('/loja-1/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'fora do ar')
+
+    def test_vitrine_bloqueada_inativa_sem_trial(self):
+        self.lojista.status_assinatura = 'inativa'
+        self.lojista.trial_fim = None
+        self.lojista.save()
+        self.assertContains(self.client.get('/loja-1/'), 'fora do ar')
+
+    def test_vitrine_bloqueada_cancelada_com_trial_futuro(self):
+        self.lojista.status_assinatura = 'cancelada'
+        self.lojista.trial_fim = date.today() + timedelta(days=3)
+        self.lojista.save()
+        self.assertContains(self.client.get('/loja-1/'), 'fora do ar')
+
+    def test_vitrine_aberta_inativa_com_validade_futura(self):
+        self.lojista.status_assinatura = 'inativa'
+        self.lojista.trial_fim = date.today() + timedelta(days=3)
+        self.lojista.save()
+        resp = self.client.get('/loja-1/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotContains(resp, 'fora do ar')
+
+    def test_manifest_liberado_no_trial(self):
+        self.assertEqual(self.client.get('/loja-1/manifest.json').status_code, 200)
+
+    def test_manifest_bloqueado_sem_acesso(self):
+        self.lojista.status_assinatura = 'inativa'
+        self.lojista.trial_fim = None
+        self.lojista.save()
+        self.assertEqual(self.client.get('/loja-1/manifest.json').status_code, 404)
+
     @patch('planos.services.central_client.verificar_acesso', return_value=SEM_ACESSO)
     def test_comando_pausa_vitrine_vencida(self, _m):
         self.lojista.trial_fim = date.today() - timedelta(days=1)

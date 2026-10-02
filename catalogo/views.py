@@ -182,7 +182,7 @@ def editar_produto(request, pk):
 
 def ver_catalogo(request, slug):
     lojista = get_object_or_404(Lojista, slug=slug)
-    if not lojista.ativo:
+    if not lojista.ativo or not lojista.esta_com_acesso_liberado():
         return render(request, 'catalogo/loja_desativada.html', {'lojista': lojista})
     categorias = lojista.categorias.prefetch_related('produtos').all()
     produtos = Produto.objects.filter(lojista=lojista, ativo=True).prefetch_related('variacoes__tipo')
@@ -212,6 +212,8 @@ def manifest_json(request, slug):
     """Manifest do PWA de cada loja — cada lojista vira um 'app' instalável
     isolado (nome, cor e ícone próprios), com escopo restrito à sua URL."""
     lojista = get_object_or_404(Lojista, slug=slug, ativo=True)
+    if not lojista.esta_com_acesso_liberado():
+        return JsonResponse({'erro': 'Loja indisponível'}, status=404)
     tema = get_tema(lojista.tema)
     versao = _versao_icone(lojista)
     data = {
@@ -383,6 +385,8 @@ def instalar_app(request, slug):
     """Página que o lojista manda pro cliente final instalar o catálogo
     como app na tela inicial do celular (Android e iPhone)."""
     lojista = get_object_or_404(Lojista, slug=slug, ativo=True, link_app_habilitado=True)
+    if not lojista.esta_com_acesso_liberado():
+        return render(request, 'catalogo/loja_desativada.html', {'lojista': lojista})
     tema = get_tema(lojista.tema)
     return render(request, 'catalogo/instalar.html', {'lojista': lojista, 'tema': tema})
 

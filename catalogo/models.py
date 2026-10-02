@@ -55,6 +55,8 @@ class Lojista(models.Model):
     def esta_com_acesso_liberado(self):
         if self.status_assinatura == 'ativa':
             return True
+        if self.status_assinatura == 'cancelada':
+            return False
         if not self.trial_fim:
             return False
         from datetime import date
