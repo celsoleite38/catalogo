@@ -17,9 +17,9 @@ from planos.services import central_client
 def _trial_local_valido(lojista):
     return (
         lojista
-        and lojista.status_assinatura == 'trial'
         and lojista.trial_fim
         and lojista.trial_fim >= date.today()
+        and lojista.status_assinatura in ('trial', 'inativa')
     )
 
 

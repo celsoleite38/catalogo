@@ -125,6 +125,24 @@ class TrialTests(TestCase):
         r = self.client.get('/painel/')
         self.assertTrue(self.aponta_para_planos(r), f'{r.status_code} -> {r.get("Location")}')
 
+    @patch('planos.services.central_client.verificar_acesso', return_value=SEM_ACESSO)
+    def test_inativa_com_trial_futuro_libera_painel(self, _m):
+        """Status 'inativa' + validade futura já caracteriza trial válido."""
+        self.lojista.status_assinatura = 'inativa'
+        self.lojista.trial_fim = date.today() + timedelta(days=3)
+        self.lojista.save()
+        resp = self.client.get('/painel/')
+        self.assertNotEqual(resp.status_code, 302, 'painel foi bloqueado no trial')
+
+    @patch('planos.services.central_client.verificar_acesso', return_value=SEM_ACESSO)
+    def test_cancelada_com_trial_futuro_vai_para_planos(self, _m):
+        """Cancelado não herda acesso por um trial_fim remanescente."""
+        self.lojista.status_assinatura = 'cancelada'
+        self.lojista.trial_fim = date.today() + timedelta(days=3)
+        self.lojista.save()
+        r = self.client.get('/painel/')
+        self.assertTrue(self.aponta_para_planos(r), f'{r.status_code} -> {r.get("Location")}')
+
     @patch('planos.services.central_client.verificar_acesso', return_value=COM_TRIAL)
     def test_central_manda_trial_libera_painel(self, _m):
         self.lojista.status_assinatura = 'inativa'

@@ -36,8 +36,20 @@ class Lojista(models.Model):
     notificacoes_habilitadas = models.BooleanField(default=True, verbose_name='Ativar notificações')
     link_app_habilitado = models.BooleanField(default=True, verbose_name='Link de instalação do app (PWA)')
 
-    status_assinatura = models.CharField(max_length=20, default='inativa')
-    trial_fim = models.DateField(null=True, blank=True)
+    STATUS_ASSINATURA_CHOICES = [
+        ('trial', 'Trial'),
+        ('ativa', 'Ativa'),
+        ('inativa', 'Inativa'),
+        ('cancelada', 'Cancelada'),
+    ]
+
+    status_assinatura = models.CharField(
+        max_length=20,
+        choices=STATUS_ASSINATURA_CHOICES,
+        default='inativa',
+        verbose_name='Status da assinatura',
+    )
+    trial_fim = models.DateField(null=True, blank=True, verbose_name='Validade (trial)')
     asaas_customer_id = models.CharField(max_length=50, blank=True, null=True)
 
     def esta_com_acesso_liberado(self):
