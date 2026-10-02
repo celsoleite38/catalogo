@@ -11,8 +11,8 @@ class CategoriaInline(admin.TabularInline):
 
 @admin.register(Lojista)
 class LojistaAdmin(admin.ModelAdmin):
-    list_display = ('nome_loja', 'slug', 'whatsapp', 'user', 'notificacoes_habilitadas', 'link_app_habilitado')
-    list_filter = ('notificacoes_habilitadas', 'link_app_habilitado')
+    list_display = ('nome_loja', 'user', 'status_assinatura', 'trial_fim', 'ativo', 'whatsapp', 'link_app_habilitado')
+    list_filter = ('ativo', 'status_assinatura', 'notificacoes_habilitadas')
     prepopulated_fields = {'slug': ('nome_loja',)}
     inlines = [CategoriaInline]
 
