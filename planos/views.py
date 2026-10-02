@@ -61,18 +61,25 @@ def checkout(request, plano_codigo):
         else:
             url_sucesso = request.build_absolute_uri(reverse('planos:pagina_obrigado'))
             url_cancelamento = request.build_absolute_uri(reverse('planos:pagina_planos'))
-            resultado, status = central_client.criar_checkout(
-                plano_codigo=plano_codigo,
-                email=email,
-                nome=nome or request.user.get_full_name(),
-                cpf_cnpj=cpf_cnpj,
-                recorrente=True,
-                url_sucesso=url_sucesso,
-                url_cancelamento=url_cancelamento,
-            )
-            if status == 200 and resultado.get('link'):
+            try:
+                resultado, status = central_client.criar_checkout(
+                    plano_codigo=plano_codigo,
+                    email=email,
+                    nome=nome or request.user.get_full_name(),
+                    cpf_cnpj=cpf_cnpj,
+                    recorrente=True,
+                    url_sucesso=url_sucesso,
+                    url_cancelamento=url_cancelamento,
+                )
+            except (requests.RequestException, ValueError, TypeError) as e:
+                logger.error(
+                    'checkout falhou ao chamar a Central (plano=%s email=%s): %s',
+                    plano_codigo, email, e,
+                )
+                resultado, status = None, 0
+            if status == 200 and resultado and resultado.get('link'):
                 return redirect(resultado['link'])
-            erro = resultado.get('erro') or 'Não foi possível gerar o pagamento.'
+            erro = (resultado or {}).get('erro') or 'Não foi possível gerar o pagamento. Tente novamente em instantes.'
 
     return render(request, 'planos/checkout.html', {
         'plano': plano,
@@ -113,6 +120,7 @@ def webhook_central(request):
     vencimento = assinatura.get('proximo_vencimento')
 
     if not email:
+        logger.warning('webhook recebido sem e-mail')
         return JsonResponse({'ok': True, 'aviso': 'sem e-mail'})
 
     if status == 'ativa':
@@ -124,6 +132,7 @@ def webhook_central(request):
                 trial_fim=vencimento,
                 ativo=True,  # pagamento confirmado: vitrine pública volta
             )
+        logger.info('webhook status=ativa email=%s vencimento=%s lojas=%d', email, vencimento, atualizadas)
         return JsonResponse({'ok': True, 'lojas_atualizadas': atualizadas})
 
     if status in ('cancelada', 'inativa'):
@@ -134,6 +143,8 @@ def webhook_central(request):
                 status_assinatura=status,
                 ativo=False,
             )
+        logger.info('webhook status=%s email=%s lojas=%d', status, email, atualizadas)
         return JsonResponse({'ok': True, 'lojas_atualizadas': atualizadas})
 
+    logger.info('webhook status=%s email=%s ignorado', status, email)
     return JsonResponse({'ok': True, 'aviso': 'status ignorado'})
