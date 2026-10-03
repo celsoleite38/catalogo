@@ -2,19 +2,44 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Pagamento enviado</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento {{ ativa|yesno:"confirmado,em andamento" }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center">
-    <div class="bg-white rounded-lg shadow-sm border p-8 max-w-md text-center">
-        <h1 class="text-xl font-bold text-gray-800">Pagamento em andamento</h1>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-sm border p-8 max-w-md w-full text-center">
+        {% if ativa %}
+        <div class="w-12 h-12 mx-auto rounded-full bg-green-100 flex items-center justify-center">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <h1 class="text-xl font-bold text-gray-800 mt-4">Pagamento confirmado</h1>
         <p class="text-sm text-gray-500 mt-3">
-            Sua assinatura será ativada assim que o pagamento for confirmado pela Central de Cobranças.
-            O acesso às suas lojas é liberado automaticamente.
+            Sua assinatura está ativa e o acesso às suas lojas foi liberado.
         </p>
-        <a href="{% url 'planos:dashboard' %}" class="inline-block mt-6 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-4 py-2.5 rounded-lg transition">
+        <a href="{% url 'planos:dashboard' %}" class="inline-block mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-4 py-2.5 rounded-lg transition">
             Ver minha assinatura
         </a>
+        <a href="/" class="inline-block mt-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold px-4 py-2.5 rounded-lg transition">
+            Acessar minhas lojas
+        </a>
+        {% else %}
+        <div class="w-12 h-12 mx-auto rounded-full bg-blue-100 flex items-center justify-center">
+            <svg class="w-6 h-6 text-blue-600 animate-spin" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M4 9a8 8 0 0114.7-2M20 15a8 8 0 01-14.7 2"></path>
+            </svg>
+        </div>
+        <h1 class="text-xl font-bold text-gray-800 mt-4">Pagamento em andamento</h1>
+        <p class="text-sm text-gray-500 mt-3">
+            Sua assinatura será ativada assim que o pagamento for confirmado pela Central de Cobranças.
+            Isso costuma levar alguns instantes.
+        </p>
+        <p class="text-xs text-gray-400 mt-3">Se já pagou, atualize esta página ou veja sua assinatura abaixo.</p>
+        <a href="{% url 'planos:dashboard' %}" class="inline-block mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-4 py-2.5 rounded-lg transition">
+            Ver minha assinatura
+        </a>
+        {% endif %}
     </div>
 </body>
 </html>

@@ -96,7 +96,14 @@ def checkout(request, plano_codigo):
 
 @login_required
 def pagina_obrigado(request):
-    return render(request, 'planos/obrigado.html')
+    ativa = False
+    if request.user.is_authenticated:
+        try:
+            acesso = central_client.verificar_acesso(request.user.email)
+            ativa = bool(acesso and acesso.get('pode_acessar'))
+        except requests.RequestException:
+            ativa = False
+    return render(request, 'planos/obrigado.html', {'ativa': ativa})
 
 
 @login_required
@@ -151,6 +158,17 @@ def webhook_central(request):
                 ativo=False,
             )
         logger.info('webhook status=%s email=%s lojas=%d', status, email, atualizadas)
+        return JsonResponse({'ok': True, 'lojas_atualizadas': atualizadas})
+
+    if status == 'atrasada':
+        usuarios = User.objects.filter(email=email)
+        atualizadas = 0
+        for usuario in usuarios:
+            atualizadas += Lojista.objects.filter(user=usuario).update(
+                status_assinatura='atrasada',
+                ativo=False,
+            )
+        logger.info('webhook status=atrasada email=%s lojas=%d', email, atualizadas)
         return JsonResponse({'ok': True, 'lojas_atualizadas': atualizadas})
 
     logger.info('webhook status=%s email=%s ignorado', status, email)

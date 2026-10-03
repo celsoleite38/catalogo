@@ -39,6 +39,7 @@ class Lojista(models.Model):
     STATUS_ASSINATURA_CHOICES = [
         ('trial', 'Trial'),
         ('ativa', 'Ativa'),
+        ('atrasada', 'Pagamento atrasado'),
         ('inativa', 'Inativa'),
         ('cancelada', 'Cancelada'),
     ]
