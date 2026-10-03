@@ -51,6 +51,7 @@ class Lojista(models.Model):
     )
     trial_fim = models.DateField(null=True, blank=True, verbose_name='Validade (trial)')
     asaas_customer_id = models.CharField(max_length=50, blank=True, null=True)
+    telefone = models.CharField(max_length=20, blank=True, verbose_name='Telefone (DDD + número)')
 
     def esta_com_acesso_liberado(self):
         if self.status_assinatura == 'ativa':

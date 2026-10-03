@@ -38,6 +38,12 @@
                     <input type="text" name="cpf_cnpj" placeholder="11 ou 14 dígitos"
                            class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
                 </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Telefone <span class="text-gray-400">(DDD + número)</span></label>
+                    <input type="text" name="telefone" value="{{ telefone_inicial }}"
+                           class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <p class="text-xs text-gray-400 mt-1">Seu nome, e-mail, telefone e endereço poderão ser confirmados na página de pagamento.</p>
+                </div>
                 <button type="submit"
                         class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-4 py-2.5 rounded-lg transition">
                     Continuar para o pagamento

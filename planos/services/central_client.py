@@ -70,7 +70,7 @@ def upsert_planos(planos):
     return _post('/api/planos/', {'planos': planos})
 
 
-def criar_checkout(plano_codigo, email, nome='', cpf_cnpj='', recorrente=True,
+def criar_checkout(plano_codigo, email, nome='', cpf_cnpj='', telefone='', recorrente=True,
                    url_sucesso='', url_cancelamento='', dias_vigor=None, referencia=''):
     """Cria o checkout na Central e retorna (json, status)."""
     dados = {
@@ -78,6 +78,7 @@ def criar_checkout(plano_codigo, email, nome='', cpf_cnpj='', recorrente=True,
         'email': email,
         'nome': nome,
         'cpf_cnpj': cpf_cnpj,
+        'telefone': telefone,
         'recorrente': recorrente,
         'url_sucesso': url_sucesso,
         'url_cancelamento': url_cancelamento,

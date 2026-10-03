@@ -55,6 +55,10 @@ def checkout(request, plano_codigo):
         email = request.user.email
         nome = request.POST.get('nome', '').strip()
         cpf_cnpj = request.POST.get('cpf_cnpj', '').strip()
+        telefone = request.POST.get('telefone', '').strip()
+        if not telefone:
+            loja_ref = request.user.lojas.filter(whatsapp__isnull=False).first()
+            telefone = (loja_ref.whatsapp if loja_ref else '') or ''
 
         if not email:
             erro = 'Informe o e-mail para o pagamento.'
@@ -67,6 +71,7 @@ def checkout(request, plano_codigo):
                     email=email,
                     nome=nome or request.user.get_full_name(),
                     cpf_cnpj=cpf_cnpj,
+                    telefone=telefone,
                     recorrente=True,
                     url_sucesso=url_sucesso,
                     url_cancelamento=url_cancelamento,
@@ -81,9 +86,11 @@ def checkout(request, plano_codigo):
                 return redirect(resultado['link'])
             erro = (resultado or {}).get('erro') or 'Não foi possível gerar o pagamento. Tente novamente em instantes.'
 
+    loja_ref = request.user.lojas.filter(whatsapp__isnull=False).first()
     return render(request, 'planos/checkout.html', {
         'plano': plano,
         'erro': erro,
+        'telefone_inicial': (loja_ref.whatsapp if loja_ref else '') or '',
     })
 
 
