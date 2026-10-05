@@ -225,6 +225,7 @@ class TrialTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'fora do ar')
 
+    @override_settings(CENTRAL_TOKEN='tok-da-central')
     def test_webhook_pagamento_reativa_loja(self):
         self.lojista.trial_fim = date.today() - timedelta(days=1)
         self.lojista.ativo = False
@@ -234,11 +235,49 @@ class TrialTests(TestCase):
             data={'assinatura': {'email': 't1@x.com', 'status': 'ativa',
                                  'proximo_vencimento': str(date.today() + timedelta(days=30))}},
             content_type='application/json',
+            headers={'x-central-token': 'tok-da-central'},
         )
         self.assertEqual(resp.status_code, 200)
         self.lojista.refresh_from_db()
         self.assertTrue(self.lojista.ativo)
         self.assertEqual(self.lojista.status_assinatura, 'ativa')
+
+    @override_settings(CENTRAL_TOKEN='tok-da-central')
+    def test_webhook_sem_token_nao_reativa_loja(self):
+        """Sem token não pode reativar vitrine: um POST forjado faria isso."""
+        self.lojista.trial_fim = date.today() - timedelta(days=1)
+        self.lojista.status_assinatura = 'cancelada'
+        self.lojista.ativo = False
+        self.lojista.save()
+
+        resp = self.client.post(
+            '/planos/webhook/central/',
+            data={'assinatura': {'email': 't1@x.com', 'status': 'ativa'}},
+            content_type='application/json',
+        )
+        self.assertEqual(resp.status_code, 401)
+        self.lojista.refresh_from_db()
+        self.assertFalse(self.lojista.ativo)
+        self.assertEqual(self.lojista.status_assinatura, 'cancelada')
+
+    @override_settings(CENTRAL_TOKEN='tok-da-central')
+    def test_webhook_com_token_errado_e_recusado(self):
+        resp = self.client.post(
+            '/planos/webhook/central/',
+            data={'assinatura': {'email': 't1@x.com', 'status': 'ativa'}},
+            content_type='application/json',
+            headers={'x-central-token': 'token-errado'},
+        )
+        self.assertEqual(resp.status_code, 401)
+
+    @override_settings(CENTRAL_TOKEN='')
+    def test_webhook_sem_token_configurado_e_recusado(self):
+        resp = self.client.post(
+            '/planos/webhook/central/',
+            data={'assinatura': {'email': 't1@x.com', 'status': 'ativa'}},
+            content_type='application/json',
+        )
+        self.assertEqual(resp.status_code, 401)
 
     @patch('planos.services.central_client.verificar_acesso', return_value=COM_PAGAMENTO)
     def test_pagamento_confirmado_reativa_vitrine_no_acesso(self, _m):

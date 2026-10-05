@@ -3,6 +3,8 @@
 Qualquer sistema usa o mesmo código: configura CENTRAL_URL, CENTRAL_SISTEMA
 e CENTRAL_TOKEN no .env e as páginas de planos/checkout funcionam idênticas.
 """
+import secrets
+
 import requests
 from django.conf import settings
 
@@ -16,6 +18,19 @@ def _headers():
         "X-Central-Token": settings.CENTRAL_TOKEN,
         "Content-Type": "application/json",
     }
+
+
+def token_valido(token):
+    """Confere o token que a Central envia no aviso de status da assinatura.
+
+    Sem CENTRAL_TOKEN configurado não há como validar, então o webhook é
+    recusado: aceitar assim permitiria reativar a vitrine de qualquer loja
+    por um POST forjado.
+    """
+    esperado = settings.CENTRAL_TOKEN
+    if not esperado or not token:
+        return False
+    return secrets.compare_digest(str(token), str(esperado))
 
 
 def _get(caminho, params=None):

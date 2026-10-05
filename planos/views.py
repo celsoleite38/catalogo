@@ -120,9 +120,18 @@ def dashboard(request):
 
 @csrf_exempt
 def webhook_central(request):
-    """Recebe o aviso da Central quando o status da assinatura muda."""
+    """Recebe o aviso da Central quando o status da assinatura muda.
+
+    Exige o mesmo token que o catálogo usa para chamar a Central: sem ele,
+    qualquer POST forjado reativa a vitrine de uma loja cancelada.
+    """
     if request.method != 'POST':
         return JsonResponse({'erro': 'Use POST'}, status=405)
+    if not central_client.token_valido(
+        request.headers.get('X-Central-Token', '')
+    ):
+        logger.warning('webhook da Central com token inválido')
+        return JsonResponse({'erro': 'Token inválido'}, status=401)
     try:
         data = json.loads(request.body)
     except Exception:
